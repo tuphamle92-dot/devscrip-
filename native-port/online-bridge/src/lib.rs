@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 pub mod engine_bridge;
 #[path = "../../../src/mp.rs"] mod mp;
+#[path = "../../../src/police.rs"] mod police;
 #[path = "../../../src/proto.rs"] pub mod proto;
 #[path = "../../../src/server.rs"] pub mod server;
 pub use engine_bridge::{coerce_args, default_val};
@@ -99,6 +100,12 @@ pub unsafe extern "C" fn mugoat_script_tick(instance: *mut c_void, thread: u64, 
         // Preserve it if Rust rejects a sync update or catches a panic.
         write_u64(memory, active_thread, saved.unwrap());
         if !matches!(result, Ok(Ok(()))) { ENABLED.store(false,Ordering::Release); eprintln!("[online] native sync stopped after a bridge error"); }
+        else if police::enabled() {
+            // Police career runs after the multiplayer tick, on the same game thread.
+            let police_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| police::tick(&mut caller,thread,tls)));
+            write_u64(memory, active_thread, saved.unwrap());
+            if police_result.is_err() { police::disable(); eprintln!("[police] career stopped after a panic"); }
+        }
         active.set(false);
     });
 }
@@ -166,7 +173,12 @@ pub extern "C" fn MugoatAddWalletCash(amount: i32) {
 
 #[no_mangle]
 pub extern "C" fn MugoatTriggerAmmuBuy() {
-    mp::AMMU_BUY_REQUESTED.store(true, Ordering::Relaxed);
+    // The same on-screen button doubles as the police action button while a police prompt is showing.
+    if police::enabled() && police::hint() != 0 {
+        police::action();
+    } else {
+        mp::AMMU_BUY_REQUESTED.store(true, Ordering::Relaxed);
+    }
 }
 
 #[cfg(test)]

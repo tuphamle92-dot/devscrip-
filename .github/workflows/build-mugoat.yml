@@ -1,0 +1,53 @@
+name: Build Mugoat IPA
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Normalize source
+        run: |
+          find native-port -type f \( -name '*.sh' -o -name '*.py' -o -name '*.entitlements' -o -name '*.plist' -o -name '*.yml' -o -name '*.c' -o -name '*.h' -o -name '*.mm' -o -name '*.swift' \) -exec sed -i '' 's/\r$//' {} +
+          chmod +x native-port/build_ipa.sh
+          plutil -lint native-port/app/App/Free.entitlements native-port/app/App/Full.entitlements
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+      - name: Fetch engine and game files
+        run: |
+          python3 native-port/app/Tests/download_ranges.py
+          python3 native-port/app/Tests/shader_build.py
+          mkdir -p "$RUNNER_TEMP/game-files/b/8b0b5899ed"
+          MUGUET_WASM_DEST="$RUNNER_TEMP/game-files/b/8b0b5899ed/game.wasm" node native-port/app/Scripts/download-wasm.cjs
+          /usr/bin/python3 native-port/app/Scripts/fetch_game_files.py --server 'https://hml.sinimediata.com.br' --out "$RUNNER_TEMP/game-files"
+          /usr/bin/python3 native-port/app/Scripts/check_game_files.py --mirror "$RUNNER_TEMP/game-files"
+      - name: Install build tools
+        run: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          xcrun -sdk iphoneos metal --version > /dev/null 2>&1 || xcodebuild -downloadComponent MetalToolchain
+      - name: Compile and package IPAs
+        working-directory: native-port
+        env:
+          JOBS: '3'
+          PG_REUSE_PREPARED: '0'
+        run: |
+          ./build_ipa.sh --mirror "$RUNNER_TEMP/game-files"
+          shasum -a 256 Mugoat-AppleID-Free.ipa Mugoat-Cert-Paid.ipa > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: Mugoat-IPA
+          path: |
+            native-port/Mugoat-AppleID-Free.ipa
+            native-port/Mugoat-Cert-Paid.ipa
+            native-port/SHA256SUMS.txt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: Mugoat-compiler-logs
+          path: native-port/app/Build/xcodebuild.log
+          if-no-files-found: ignore

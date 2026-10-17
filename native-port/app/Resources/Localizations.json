@@ -1,0 +1,1942 @@
+{
+  "Vào game": {
+    "en": "Play",
+    "vi": "Vào game"
+  },
+  "Play": {
+    "en": "Play",
+    "vi": "Vào game"
+  },
+  "Đang tải…": {
+    "en": "Loading…",
+    "vi": "Đang tải…"
+  },
+  "Loading…": {
+    "en": "Loading…",
+    "vi": "Đang tải…"
+  },
+  "Đồ họa & FPS": {
+    "en": "Graphics & FPS",
+    "vi": "Đồ họa & FPS"
+  },
+  "Graphics & FPS": {
+    "en": "Graphics & FPS",
+    "vi": "Đồ họa & FPS"
+  },
+  "Bố trí điều khiển": {
+    "en": "Controls layout",
+    "vi": "Bố trí điều khiển"
+  },
+  "Controls layout": {
+    "en": "Controls layout",
+    "vi": "Bố trí điều khiển"
+  },
+  "Tiện ích game": {
+    "en": "Game utilities",
+    "vi": "Tiện ích game"
+  },
+  "Game utilities": {
+    "en": "Game utilities",
+    "vi": "Tiện ích game"
+  },
+  "Save game": {
+    "en": "Save game",
+    "vi": "Save game"
+  },
+  "Thiết lập trải nghiệm": {
+    "en": "Your experience",
+    "vi": "Thiết lập trải nghiệm"
+  },
+  "Your experience": {
+    "en": "Your experience",
+    "vi": "Thiết lập trải nghiệm"
+  },
+  "Chọn cấu hình phù hợp với máy của bạn.": {
+    "en": "Choose settings that suit your device.",
+    "vi": "Chọn cấu hình phù hợp với máy của bạn."
+  },
+  "Choose settings that suit your device.": {
+    "en": "Choose settings that suit your device.",
+    "vi": "Chọn cấu hình phù hợp với máy của bạn."
+  },
+  "iOSVN  /  CHƠI THEO CÁCH CỦA BẠN": {
+    "en": "iOSVN  /  PLAY YOUR WAY",
+    "vi": "iOSVN  /  CHƠI THEO CÁCH CỦA BẠN"
+  },
+  "iOSVN  /  PLAY YOUR WAY": {
+    "en": "iOSVN  /  PLAY YOUR WAY",
+    "vi": "iOSVN  /  CHƠI THEO CÁCH CỦA BẠN"
+  },
+  "01  Chọn dữ liệu game\n02  Chọn chế độ chơi\n03  Bấm Vào game": {
+    "en": "01  Choose game data\n02  Choose a game mode\n03  Press Play",
+    "vi": "01  Chọn dữ liệu game\n02  Chọn chế độ chơi\n03  Bấm Vào game"
+  },
+  "01  Choose game data\n02  Choose a game mode\n03  Press Play": {
+    "en": "01  Choose game data\n02  Choose a game mode\n03  Press Play",
+    "vi": "01  Chọn dữ liệu game\n02  Chọn chế độ chơi\n03  Bấm Vào game"
+  },
+  "Cốt truyện": {
+    "en": "Story mode",
+    "vi": "Cốt truyện"
+  },
+  "Story mode": {
+    "en": "Story mode",
+    "vi": "Cốt truyện"
+  },
+  "Tự do": {
+    "en": "Free roam",
+    "vi": "Tự do"
+  },
+  "Free roam": {
+    "en": "Free roam",
+    "vi": "Tự do"
+  },
+  "Tiếp tục bản lưu gần nhất hoặc bắt đầu cốt truyện mới.": {
+    "en": "Continue your latest save or start a new story.",
+    "vi": "Tiếp tục bản lưu gần nhất hoặc bắt đầu cốt truyện mới."
+  },
+  "Continue your latest save or start a new story.": {
+    "en": "Continue your latest save or start a new story.",
+    "vi": "Tiếp tục bản lưu gần nhất hoặc bắt đầu cốt truyện mới."
+  },
+  "Khám phá bản đồ và thử mọi vũ khí trong chế độ tự do.": {
+    "en": "Explore the map and try every weapon in free roam.",
+    "vi": "Khám phá bản đồ và thử mọi vũ khí trong chế độ tự do."
+  },
+  "Explore the map and try every weapon in free roam.": {
+    "en": "Explore the map and try every weapon in free roam.",
+    "vi": "Khám phá bản đồ và thử mọi vũ khí trong chế độ tự do."
+  },
+  "Tiết kiệm pin": {
+    "en": "Battery",
+    "vi": "Tiết kiệm pin"
+  },
+  "Battery": {
+    "en": "Battery",
+    "vi": "Tiết kiệm pin"
+  },
+  "Ưu tiên mượt": {
+    "en": "Performance",
+    "vi": "Ưu tiên mượt"
+  },
+  "Performance": {
+    "en": "Performance",
+    "vi": "Ưu tiên mượt"
+  },
+  "Cân bằng": {
+    "en": "Balanced",
+    "vi": "Cân bằng"
+  },
+  "Balanced": {
+    "en": "Balanced",
+    "vi": "Cân bằng"
+  },
+  "Rõ nét": {
+    "en": "Quality",
+    "vi": "Rõ nét"
+  },
+  "Quality": {
+    "en": "Quality",
+    "vi": "Rõ nét"
+  },
+  "Cao": {
+    "en": "High",
+    "vi": "Cao"
+  },
+  "High": {
+    "en": "High",
+    "vi": "Cao"
+  },
+  "Tối đa": {
+    "en": "Maximum",
+    "vi": "Tối đa"
+  },
+  "Maximum": {
+    "en": "Maximum",
+    "vi": "Tối đa"
+  },
+  "432p · ít tốn RAM và pin": {
+    "en": "432p · lowest memory and battery use",
+    "vi": "432p · ít tốn RAM và pin"
+  },
+  "432p · lowest memory and battery use": {
+    "en": "432p · lowest memory and battery use",
+    "vi": "432p · ít tốn RAM và pin"
+  },
+  "540p · giảm hiệu ứng nặng": {
+    "en": "540p · reduced heavy effects",
+    "vi": "540p · giảm hiệu ứng nặng"
+  },
+  "540p · reduced heavy effects": {
+    "en": "540p · reduced heavy effects",
+    "vi": "540p · giảm hiệu ứng nặng"
+  },
+  "720p · cân bằng hình ảnh và tốc độ": {
+    "en": "720p · balance clarity and speed",
+    "vi": "720p · cân bằng hình ảnh và tốc độ"
+  },
+  "720p · balance clarity and speed": {
+    "en": "720p · balance clarity and speed",
+    "vi": "720p · cân bằng hình ảnh và tốc độ"
+  },
+  "900p · tăng chi tiết và khoảng nhìn": {
+    "en": "900p · more detail and draw distance",
+    "vi": "900p · tăng chi tiết và khoảng nhìn"
+  },
+  "900p · more detail and draw distance": {
+    "en": "900p · more detail and draw distance",
+    "vi": "900p · tăng chi tiết và khoảng nhìn"
+  },
+  "1080p · bóng và phản chiếu cao": {
+    "en": "1080p · higher shadows and reflections",
+    "vi": "1080p · bóng và phản chiếu cao"
+  },
+  "1080p · higher shadows and reflections": {
+    "en": "1080p · higher shadows and reflections",
+    "vi": "1080p · bóng và phản chiếu cao"
+  },
+  "1290p · nhiều chi tiết, cần nhiều RAM hơn": {
+    "en": "1290p · more detail, needs more memory",
+    "vi": "1290p · nhiều chi tiết, cần nhiều RAM hơn"
+  },
+  "1290p · more detail, needs more memory": {
+    "en": "1290p · more detail, needs more memory",
+    "vi": "1290p · nhiều chi tiết, cần nhiều RAM hơn"
+  },
+  "Cài đặt Mugoat": {
+    "en": "Mugoat settings",
+    "vi": "Cài đặt Mugoat"
+  },
+  "Mugoat settings": {
+    "en": "Mugoat settings",
+    "vi": "Cài đặt Mugoat"
+  },
+  "Dữ liệu game": {
+    "en": "Game data",
+    "vi": "Dữ liệu game"
+  },
+  "Game data": {
+    "en": "Game data",
+    "vi": "Dữ liệu game"
+  },
+  "Điều khiển: cảm ứng": {
+    "en": "Controls: touch",
+    "vi": "Điều khiển: cảm ứng"
+  },
+  "Controls: touch": {
+    "en": "Controls: touch",
+    "vi": "Điều khiển: cảm ứng"
+  },
+  "Chế độ chơi": {
+    "en": "Game mode",
+    "vi": "Chế độ chơi"
+  },
+  "Game mode": {
+    "en": "Game mode",
+    "vi": "Chế độ chơi"
+  },
+  "Điều khiển": {
+    "en": "Controls",
+    "vi": "Điều khiển"
+  },
+  "Controls": {
+    "en": "Controls",
+    "vi": "Điều khiển"
+  },
+  "Cảm biến": {
+    "en": "Motion controls",
+    "vi": "Cảm biến"
+  },
+  "Motion controls": {
+    "en": "Motion controls",
+    "vi": "Cảm biến"
+  },
+  "Thiết bị & hỗ trợ": {
+    "en": "Device & support",
+    "vi": "Thiết bị & hỗ trợ"
+  },
+  "Device & support": {
+    "en": "Device & support",
+    "vi": "Thiết bị & hỗ trợ"
+  },
+  "Chia sẻ nhật ký hỗ trợ": {
+    "en": "Share support logs",
+    "vi": "Chia sẻ nhật ký hỗ trợ"
+  },
+  "Share support logs": {
+    "en": "Share support logs",
+    "vi": "Chia sẻ nhật ký hỗ trợ"
+  },
+  "Chọn nơi gửi hoặc lưu nhật ký": {
+    "en": "Choose where to send or save logs",
+    "vi": "Chọn nơi gửi hoặc lưu nhật ký"
+  },
+  "Choose where to send or save logs": {
+    "en": "Choose where to send or save logs",
+    "vi": "Chọn nơi gửi hoặc lưu nhật ký"
+  },
+  "Save game & sao lưu": {
+    "en": "Save files & backups",
+    "vi": "Save game & sao lưu"
+  },
+  "Save files & backups": {
+    "en": "Save files & backups",
+    "vi": "Save game & sao lưu"
+  },
+  "Xem tệp lưu, xuất bản sao hoặc khôi phục": {
+    "en": "View save files, export a backup or restore",
+    "vi": "Xem tệp lưu, xuất bản sao hoặc khôi phục"
+  },
+  "View save files, export a backup or restore": {
+    "en": "View save files, export a backup or restore",
+    "vi": "Xem tệp lưu, xuất bản sao hoặc khôi phục"
+  },
+  "Sao lưu & khôi phục": {
+    "en": "Backup & restore",
+    "vi": "Sao lưu & khôi phục"
+  },
+  "Backup & restore": {
+    "en": "Backup & restore",
+    "vi": "Sao lưu & khôi phục"
+  },
+  "Sao lưu tất cả save": {
+    "en": "Back up all saves",
+    "vi": "Sao lưu tất cả save"
+  },
+  "Back up all saves": {
+    "en": "Back up all saves",
+    "vi": "Sao lưu tất cả save"
+  },
+  "Nhập bản sao lưu": {
+    "en": "Import a backup",
+    "vi": "Nhập bản sao lưu"
+  },
+  "Import a backup": {
+    "en": "Import a backup",
+    "vi": "Nhập bản sao lưu"
+  },
+  "Làm mới danh sách": {
+    "en": "Refresh files",
+    "vi": "Làm mới danh sách"
+  },
+  "Refresh files": {
+    "en": "Refresh files",
+    "vi": "Làm mới danh sách"
+  },
+  "Tạo bản sao và chọn nơi lưu hoặc chia sẻ": {
+    "en": "Create a backup, then save or share it",
+    "vi": "Tạo bản sao và chọn nơi lưu hoặc chia sẻ"
+  },
+  "Create a backup, then save or share it": {
+    "en": "Create a backup, then save or share it",
+    "vi": "Tạo bản sao và chọn nơi lưu hoặc chia sẻ"
+  },
+  "Mở lại app, nhập trước khi bấm Vào game": {
+    "en": "Reopen the app and import before pressing Play",
+    "vi": "Mở lại app, nhập trước khi bấm Vào game"
+  },
+  "Reopen the app and import before pressing Play": {
+    "en": "Reopen the app and import before pressing Play",
+    "vi": "Mở lại app, nhập trước khi bấm Vào game"
+  },
+  "Chọn tệp .mugoatsave đã xuất": {
+    "en": "Choose an exported .mugoatsave file",
+    "vi": "Chọn tệp .mugoatsave đã xuất"
+  },
+  "Choose an exported .mugoatsave file": {
+    "en": "Choose an exported .mugoatsave file",
+    "vi": "Chọn tệp .mugoatsave đã xuất"
+  },
+  "Xem tệp mới nhất sau khi game lưu": {
+    "en": "Refresh after the game has saved",
+    "vi": "Xem tệp mới nhất sau khi game lưu"
+  },
+  "Refresh after the game has saved": {
+    "en": "Refresh after the game has saved",
+    "vi": "Xem tệp mới nhất sau khi game lưu"
+  },
+  "Chưa có tệp save": {
+    "en": "No save files yet",
+    "vi": "Chưa có tệp save"
+  },
+  "No save files yet": {
+    "en": "No save files yet",
+    "vi": "Chưa có tệp save"
+  },
+  "Chơi Cốt truyện và lưu trong game, rồi quay lại đây.": {
+    "en": "Play Story mode and save in the game, then return here.",
+    "vi": "Chơi Cốt truyện và lưu trong game, rồi quay lại đây."
+  },
+  "Play Story mode and save in the game, then return here.": {
+    "en": "Play Story mode and save in the game, then return here.",
+    "vi": "Chơi Cốt truyện và lưu trong game, rồi quay lại đây."
+  },
+  "Khôi phục trước khi vào game": {
+    "en": "Restore before starting the game",
+    "vi": "Khôi phục trước khi vào game"
+  },
+  "Restore before starting the game": {
+    "en": "Restore before starting the game",
+    "vi": "Khôi phục trước khi vào game"
+  },
+  "Mở lại app và vào Save game trước khi bấm Vào game.": {
+    "en": "Reopen the app and open Save game before pressing Play.",
+    "vi": "Mở lại app và vào Save game trước khi bấm Vào game."
+  },
+  "Reopen the app and open Save game before pressing Play.": {
+    "en": "Reopen the app and open Save game before pressing Play.",
+    "vi": "Mở lại app và vào Save game trước khi bấm Vào game."
+  },
+  "Khôi phục save?": {
+    "en": "Restore these saves?",
+    "vi": "Khôi phục save?"
+  },
+  "Restore these saves?": {
+    "en": "Restore these saves?",
+    "vi": "Khôi phục save?"
+  },
+  "Save trùng đường dẫn sẽ được thay thế. App tạo bản sao lưu save hiện có trước khi khôi phục.": {
+    "en": "Saves at matching paths will be replaced. The app backs up existing saves first.",
+    "vi": "Save trùng đường dẫn sẽ được thay thế. App tạo bản sao lưu save hiện có trước khi khôi phục."
+  },
+  "Saves at matching paths will be replaced. The app backs up existing saves first.": {
+    "en": "Saves at matching paths will be replaced. The app backs up existing saves first.",
+    "vi": "Save trùng đường dẫn sẽ được thay thế. App tạo bản sao lưu save hiện có trước khi khôi phục."
+  },
+  "Khôi phục": {
+    "en": "Restore",
+    "vi": "Khôi phục"
+  },
+  "Restore": {
+    "en": "Restore",
+    "vi": "Khôi phục"
+  },
+  "Đã khôi phục tệp save": {
+    "en": "Save files restored",
+    "vi": "Đã khôi phục tệp save"
+  },
+  "Save files restored": {
+    "en": "Save files restored",
+    "vi": "Đã khôi phục tệp save"
+  },
+  "Chọn Cốt truyện và vào game để nạp tiến trình.": {
+    "en": "Select Story mode and start the game to load your progress.",
+    "vi": "Chọn Cốt truyện và vào game để nạp tiến trình."
+  },
+  "Select Story mode and start the game to load your progress.": {
+    "en": "Select Story mode and start the game to load your progress.",
+    "vi": "Chọn Cốt truyện và vào game để nạp tiến trình."
+  },
+  "Không đọc được save": {
+    "en": "Cannot read save files",
+    "vi": "Không đọc được save"
+  },
+  "Cannot read save files": {
+    "en": "Cannot read save files",
+    "vi": "Không đọc được save"
+  },
+  "Không xuất được tệp": {
+    "en": "Cannot export file",
+    "vi": "Không xuất được tệp"
+  },
+  "Cannot export file": {
+    "en": "Cannot export file",
+    "vi": "Không xuất được tệp"
+  },
+  "Không sao lưu được": {
+    "en": "Cannot create backup",
+    "vi": "Không sao lưu được"
+  },
+  "Cannot create backup": {
+    "en": "Cannot create backup",
+    "vi": "Không sao lưu được"
+  },
+  "Không khôi phục được": {
+    "en": "Cannot restore backup",
+    "vi": "Không khôi phục được"
+  },
+  "Cannot restore backup": {
+    "en": "Cannot restore backup",
+    "vi": "Không khôi phục được"
+  },
+  "Bản sao lưu không hợp lệ hoặc chứa đường dẫn không được phép.": {
+    "en": "Invalid backup or unsupported file paths.",
+    "vi": "Bản sao lưu không hợp lệ hoặc chứa đường dẫn không được phép."
+  },
+  "Invalid backup or unsupported file paths.": {
+    "en": "Invalid backup or unsupported file paths.",
+    "vi": "Bản sao lưu không hợp lệ hoặc chứa đường dẫn không được phép."
+  },
+  "Chưa có tệp save. Hãy lưu bằng điện thoại hoặc điểm lưu trong GTA V trước.": {
+    "en": "No save files yet. Save using the phone or a save point in GTA V first.",
+    "vi": "Chưa có tệp save. Hãy lưu bằng điện thoại hoặc điểm lưu trong GTA V trước."
+  },
+  "No save files yet. Save using the phone or a save point in GTA V first.": {
+    "en": "No save files yet. Save using the phone or a save point in GTA V first.",
+    "vi": "Chưa có tệp save. Hãy lưu bằng điện thoại hoặc điểm lưu trong GTA V trước."
+  },
+  "Game đang ghi save. Chờ biểu tượng lưu biến mất rồi thử sao lưu lại.": {
+    "en": "The game is writing a save. Wait for the save icon to disappear, then try again.",
+    "vi": "Game đang ghi save. Chờ biểu tượng lưu biến mất rồi thử sao lưu lại."
+  },
+  "The game is writing a save. Wait for the save icon to disappear, then try again.": {
+    "en": "The game is writing a save. Wait for the save icon to disappear, then try again.",
+    "vi": "Game đang ghi save. Chờ biểu tượng lưu biến mất rồi thử sao lưu lại."
+  },
+  "Dữ liệu save vượt giới hạn 16 MB; hãy xuất từng tệp cần thiết.": {
+    "en": "Save data exceeds 16 MB; export individual files instead.",
+    "vi": "Dữ liệu save vượt giới hạn 16 MB; hãy xuất từng tệp cần thiết."
+  },
+  "Save data exceeds 16 MB; export individual files instead.": {
+    "en": "Save data exceeds 16 MB; export individual files instead.",
+    "vi": "Dữ liệu save vượt giới hạn 16 MB; hãy xuất từng tệp cần thiết."
+  },
+  "Lưu tiến trình bằng điện thoại hoặc điểm lưu trong GTA V. Sau đó sao lưu tại đây. Bản sao nằm trong Tệp › Mugoat › SaveBackups. Khôi phục khi chưa vào game; save hiện có được sao lưu trước khi thay thế.": {
+    "en": "Save progress using the phone or a save point in GTA V, then back up here. Backups are in Files › Mugoat › SaveBackups. Restore before starting the game; existing saves are backed up before replacement.",
+    "vi": "Lưu tiến trình bằng điện thoại hoặc điểm lưu trong GTA V. Sau đó sao lưu tại đây. Bản sao nằm trong Tệp › Mugoat › SaveBackups. Khôi phục khi chưa vào game; save hiện có được sao lưu trước khi thay thế."
+  },
+  "Save progress using the phone or a save point in GTA V, then back up here. Backups are in Files › Mugoat › SaveBackups. Restore before starting the game; existing saves are backed up before replacement.": {
+    "en": "Save progress using the phone or a save point in GTA V, then back up here. Backups are in Files › Mugoat › SaveBackups. Restore before starting the game; existing saves are backed up before replacement.",
+    "vi": "Lưu tiến trình bằng điện thoại hoặc điểm lưu trong GTA V. Sau đó sao lưu tại đây. Bản sao nằm trong Tệp › Mugoat › SaveBackups. Khôi phục khi chưa vào game; save hiện có được sao lưu trước khi thay thế."
+  },
+  "Đóng": {
+    "vi": "Đóng",
+    "en": "Close"
+  },
+  "Close": {
+    "en": "Close",
+    "vi": "Đóng"
+  },
+  "Hủy": {
+    "en": "Cancel",
+    "vi": "Hủy"
+  },
+  "Cancel": {
+    "en": "Cancel",
+    "vi": "Hủy"
+  },
+  "Tiếp tục": {
+    "en": "Continue",
+    "vi": "Tiếp tục"
+  },
+  "Continue": {
+    "en": "Continue",
+    "vi": "Tiếp tục"
+  },
+  "Xem chi tiết lỗi": {
+    "en": "Show problem details",
+    "vi": "Xem chi tiết lỗi"
+  },
+  "Show problem details": {
+    "en": "Show problem details",
+    "vi": "Xem chi tiết lỗi"
+  },
+  "Vẫn thử mở game": {
+    "en": "Try playing anyway",
+    "vi": "Vẫn thử mở game"
+  },
+  "Try playing anyway": {
+    "en": "Try playing anyway",
+    "vi": "Vẫn thử mở game"
+  },
+  "Bảng lệnh cheat (Cheat Menu)": {
+    "en": "Cheat menu",
+    "vi": "Bảng lệnh cheat (Cheat Menu)"
+  },
+  "Cheat menu": {
+    "en": "Cheat menu",
+    "vi": "Bảng lệnh cheat (Cheat Menu)"
+  },
+  "Nhập mã lệnh hoặc bật nhanh các cheat có sẵn": {
+    "en": "Enter a code or use a built-in cheat",
+    "vi": "Nhập mã lệnh hoặc bật nhanh các cheat có sẵn"
+  },
+  "Enter a code or use a built-in cheat": {
+    "en": "Enter a code or use a built-in cheat",
+    "vi": "Nhập mã lệnh hoặc bật nhanh các cheat có sẵn"
+  },
+  "Mở menu": {
+    "en": "Open menu",
+    "vi": "Mở menu"
+  },
+  "Open menu": {
+    "en": "Open menu",
+    "vi": "Mở menu"
+  },
+  "Lệnh cheat": {
+    "en": "Cheats",
+    "vi": "Lệnh cheat"
+  },
+  "Cheats": {
+    "en": "Cheats",
+    "vi": "Lệnh cheat"
+  },
+  "Bản kiểm tra giao diện; không chạy engine game.": {
+    "en": "Interface preview; the game engine is not running.",
+    "vi": "Bản kiểm tra giao diện; không chạy engine game."
+  },
+  "Interface preview; the game engine is not running.": {
+    "en": "Interface preview; the game engine is not running.",
+    "vi": "Bản kiểm tra giao diện; không chạy engine game."
+  },
+  "Chọn chế độ trước khi vào game.": {
+    "en": "Choose a mode before starting.",
+    "vi": "Chọn chế độ trước khi vào game."
+  },
+  "Choose a mode before starting.": {
+    "en": "Choose a mode before starting.",
+    "vi": "Chọn chế độ trước khi vào game."
+  },
+  "Dữ liệu đã sẵn sàng": {
+    "en": "Game data ready",
+    "vi": "Dữ liệu đã sẵn sàng"
+  },
+  "Game data ready": {
+    "en": "Game data ready",
+    "vi": "Dữ liệu đã sẵn sàng"
+  },
+  "GTA V · Đã kiểm tra các tệp cần thiết": {
+    "en": "GTA V · Required files checked",
+    "vi": "GTA V · Đã kiểm tra các tệp cần thiết"
+  },
+  "GTA V · Required files checked": {
+    "en": "GTA V · Required files checked",
+    "vi": "GTA V · Đã kiểm tra các tệp cần thiết"
+  },
+  "Khám phá Los Santos theo cách của bạn.": {
+    "en": "Explore Los Santos your way.",
+    "vi": "Khám phá Los Santos theo cách của bạn."
+  },
+  "Explore Los Santos your way.": {
+    "en": "Explore Los Santos your way.",
+    "vi": "Khám phá Los Santos theo cách của bạn."
+  },
+  "Nhập thư mục save": {
+    "en": "Import a save folder",
+    "vi": "Nhập thư mục save"
+  },
+  "Import a save folder": {
+    "en": "Import a save folder",
+    "vi": "Nhập thư mục save"
+  },
+  "Chọn thư mục chứa userdata và sandbox, ví dụ Muguet/saves": {
+    "en": "Choose a folder containing userdata and sandbox, for example Muguet/saves",
+    "vi": "Chọn thư mục chứa userdata và sandbox, ví dụ Muguet/saves"
+  },
+  "Choose a folder containing userdata and sandbox, for example Muguet/saves": {
+    "en": "Choose a folder containing userdata and sandbox, for example Muguet/saves",
+    "vi": "Chọn thư mục chứa userdata và sandbox, ví dụ Muguet/saves"
+  },
+  "Mở bảng lệnh cheat để kích hoạt bất tử, hồi máu & giáp, nhận tất cả vũ khí, gọi xe cộ, máy bay, đổi thời tiết...": {
+    "en": "Open built-in cheats for health, armor, weapons, vehicles, aircraft and weather.",
+    "vi": "Mở bảng lệnh cheat để kích hoạt bất tử, hồi máu & giáp, nhận tất cả vũ khí, gọi xe cộ, máy bay, đổi thời tiết..."
+  },
+  "Open built-in cheats for health, armor, weapons, vehicles, aircraft and weather.": {
+    "en": "Open built-in cheats for health, armor, weapons, vehicles, aircraft and weather.",
+    "vi": "Mở bảng lệnh cheat để kích hoạt bất tử, hồi máu & giáp, nhận tất cả vũ khí, gọi xe cộ, máy bay, đổi thời tiết..."
+  },
+  "Tệp đang có": {
+    "en": "Current files",
+    "vi": "Tệp đang có"
+  },
+  "Current files": {
+    "en": "Current files",
+    "vi": "Tệp đang có"
+  },
+  "Chia sẻ log kèm phiên bản này khi báo lỗi.": {
+    "en": "Include this version when reporting a problem.",
+    "vi": "Chia sẻ log kèm phiên bản này khi báo lỗi."
+  },
+  "Include this version when reporting a problem.": {
+    "en": "Include this version when reporting a problem.",
+    "vi": "Chia sẻ log kèm phiên bản này khi báo lỗi."
+  },
+  "Độ phân giải": {
+    "en": "Resolution",
+    "vi": "Độ phân giải"
+  },
+  "Resolution": {
+    "en": "Resolution",
+    "vi": "Độ phân giải"
+  },
+  "Giới hạn FPS": {
+    "en": "Frame rate",
+    "vi": "Giới hạn FPS"
+  },
+  "Frame rate": {
+    "en": "Frame rate",
+    "vi": "Giới hạn FPS"
+  },
+  "Vừa màn hình": {
+    "en": "Fill the screen",
+    "vi": "Vừa màn hình"
+  },
+  "Fill the screen": {
+    "en": "Fill the screen",
+    "vi": "Vừa màn hình"
+  },
+  "Dựng hình theo tỷ lệ màn hình, không kéo giãn 16:9": {
+    "en": "Render at the screen's shape instead of stretching 16:9",
+    "vi": "Dựng hình theo tỷ lệ màn hình, không kéo giãn 16:9"
+  },
+  "Render at the screen's shape instead of stretching 16:9": {
+    "en": "Render at the screen's shape instead of stretching 16:9",
+    "vi": "Dựng hình theo tỷ lệ màn hình, không kéo giãn 16:9"
+  },
+  "FPS cao tốn pin và nóng hơn. Giới hạn 30 FPS dễ ổn định hơn; không giới hạn có thể tới 120 trên màn hình ProMotion.": {
+    "en": "Higher uses more power and heat; 30 FPS is steadiest. Unlocked goes up to 120 on ProMotion iPhones.",
+    "vi": "FPS cao tốn pin và nóng hơn. Giới hạn 30 FPS dễ ổn định hơn; không giới hạn có thể tới 120 trên màn hình ProMotion."
+  },
+  "Higher uses more power and heat; 30 FPS is steadiest. Unlocked goes up to 120 on ProMotion iPhones.": {
+    "en": "Higher uses more power and heat; 30 FPS is steadiest. Unlocked goes up to 120 on ProMotion iPhones.",
+    "vi": "FPS cao tốn pin và nóng hơn. Giới hạn 30 FPS dễ ổn định hơn; không giới hạn có thể tới 120 trên màn hình ProMotion."
+  },
+  "Không giới hạn": {
+    "en": "Unlocked",
+    "vi": "Không giới hạn"
+  },
+  "Unlocked": {
+    "en": "Unlocked",
+    "vi": "Không giới hạn"
+  },
+  " (khuyên dùng)": {
+    "en": " (recommended)",
+    "vi": " (khuyên dùng)"
+  },
+  " (recommended)": {
+    "en": " (recommended)",
+    "vi": " (khuyên dùng)"
+  },
+  " (đang chơi)": {
+    "en": " (playing now)",
+    "vi": " (đang chơi)"
+  },
+  " (playing now)": {
+    "en": " (playing now)",
+    "vi": " (đang chơi)"
+  },
+  " · áp dụng ngay": {
+    "en": " · changes right away",
+    "vi": " · áp dụng ngay"
+  },
+  " · changes right away": {
+    "en": " · changes right away",
+    "vi": " · áp dụng ngay"
+  },
+  "Đổi độ phân giải được áp dụng ngay. ": {
+    "en": "Resolution changes apply right away. ",
+    "vi": "Đổi độ phân giải được áp dụng ngay. "
+  },
+  "Resolution changes apply right away. ": {
+    "en": "Resolution changes apply right away. ",
+    "vi": "Đổi độ phân giải được áp dụng ngay. "
+  },
+  "Đổi chất lượng và giới hạn FPS được áp dụng khi mở game lần sau.": {
+    "en": "Preset and frame rate changes apply the next time you start the game.",
+    "vi": "Đổi chất lượng và giới hạn FPS được áp dụng khi mở game lần sau."
+  },
+  "Preset and frame rate changes apply the next time you start the game.": {
+    "en": "Preset and frame rate changes apply the next time you start the game.",
+    "vi": "Đổi chất lượng và giới hạn FPS được áp dụng khi mở game lần sau."
+  },
+  "Cấu hình được áp dụng khi bấm Vào game.": {
+    "en": "Presets apply when you press Play.",
+    "vi": "Cấu hình được áp dụng khi bấm Vào game."
+  },
+  "Presets apply when you press Play.": {
+    "en": "Presets apply when you press Play.",
+    "vi": "Cấu hình được áp dụng khi bấm Vào game."
+  },
+  "Save Cốt truyện được giữ trên máy. Chế độ Tự do dùng tệp riêng.": {
+    "en": "Story mode saves stay on this phone between launches. Sandbox keeps its own separate files.",
+    "vi": "Save Cốt truyện được giữ trên máy. Chế độ Tự do dùng tệp riêng."
+  },
+  "Story mode saves stay on this phone between launches. Sandbox keeps its own separate files.": {
+    "en": "Story mode saves stay on this phone between launches. Sandbox keeps its own separate files.",
+    "vi": "Save Cốt truyện được giữ trên máy. Chế độ Tự do dùng tệp riêng."
+  },
+  "Thay đổi được áp dụng khi mở game lần sau. ": {
+    "en": "Changes apply the next time you start the game. ",
+    "vi": "Thay đổi được áp dụng khi mở game lần sau. "
+  },
+  "Changes apply the next time you start the game. ": {
+    "en": "Changes apply the next time you start the game. ",
+    "vi": "Thay đổi được áp dụng khi mở game lần sau. "
+  },
+  "Cấu hình cao hơn mức khuyến nghị có thể thiếu RAM hoặc làm máy nóng. Nếu khởi động lỗi, app tự giảm cấu hình.": {
+    "en": "Presets above the recommended one can run out of memory or heat up on this phone; if a launch fails, the game falls back automatically.",
+    "vi": "Cấu hình cao hơn mức khuyến nghị có thể thiếu RAM hoặc làm máy nóng. Nếu khởi động lỗi, app tự giảm cấu hình."
+  },
+  "Presets above the recommended one can run out of memory or heat up on this phone; if a launch fails, the game falls back automatically.": {
+    "en": "Presets above the recommended one can run out of memory or heat up on this phone; if a launch fails, the game falls back automatically.",
+    "vi": "Cấu hình cao hơn mức khuyến nghị có thể thiếu RAM hoặc làm máy nóng. Nếu khởi động lỗi, app tự giảm cấu hình."
+  },
+  "Tốc độ xoay camera": {
+    "en": "Camera stick speed",
+    "vi": "Tốc độ xoay camera"
+  },
+  "Camera stick speed": {
+    "en": "Camera stick speed",
+    "vi": "Tốc độ xoay camera"
+  },
+  "Tốc độ nhìn": {
+    "en": "Look speed",
+    "vi": "Tốc độ nhìn"
+  },
+  "Look speed": {
+    "en": "Look speed",
+    "vi": "Tốc độ nhìn"
+  },
+  "Tốc độ khi ngắm": {
+    "en": "Aim stick speed",
+    "vi": "Tốc độ khi ngắm"
+  },
+  "Aim stick speed": {
+    "en": "Aim stick speed",
+    "vi": "Tốc độ khi ngắm"
+  },
+  "Chế độ ngắm": {
+    "en": "Aiming mode",
+    "vi": "Chế độ ngắm"
+  },
+  "Aiming mode": {
+    "en": "Aiming mode",
+    "vi": "Chế độ ngắm"
+  },
+  "Độ nhạy khi ngắm": {
+    "en": "Aim sensitivity",
+    "vi": "Độ nhạy khi ngắm"
+  },
+  "Aim sensitivity": {
+    "en": "Aim sensitivity",
+    "vi": "Độ nhạy khi ngắm"
+  },
+  "Bắn đồng thời ngắm": {
+    "en": "Fire also aims",
+    "vi": "Bắn đồng thời ngắm"
+  },
+  "Fire also aims": {
+    "en": "Fire also aims",
+    "vi": "Bắn đồng thời ngắm"
+  },
+  "Ẩn nút khi có tay cầm": {
+    "en": "Hide touch with a controller",
+    "vi": "Ẩn nút khi có tay cầm"
+  },
+  "Hide touch with a controller": {
+    "en": "Hide touch with a controller",
+    "vi": "Ẩn nút khi có tay cầm"
+  },
+  "Ẩn nút cảm ứng khi có tay cầm": {
+    "en": "Hide touch controls with a controller",
+    "vi": "Ẩn nút cảm ứng khi có tay cầm"
+  },
+  "Hide touch controls with a controller": {
+    "en": "Hide touch controls with a controller",
+    "vi": "Ẩn nút cảm ứng khi có tay cầm"
+  },
+  "Bàn phím & chuột": {
+    "en": "Keyboard and mouse",
+    "vi": "Bàn phím & chuột"
+  },
+  "Keyboard and mouse": {
+    "en": "Keyboard and mouse",
+    "vi": "Bàn phím & chuột"
+  },
+  "Độ mờ nút cảm ứng": {
+    "en": "Touch opacity",
+    "vi": "Độ mờ nút cảm ứng"
+  },
+  "Touch opacity": {
+    "en": "Touch opacity",
+    "vi": "Độ mờ nút cảm ứng"
+  },
+  "Kích thước nút": {
+    "en": "Touch size",
+    "vi": "Kích thước nút"
+  },
+  "Touch size": {
+    "en": "Touch size",
+    "vi": "Kích thước nút"
+  },
+  "Độ mờ nút": {
+    "en": "Button opacity",
+    "vi": "Độ mờ nút"
+  },
+  "Button opacity": {
+    "en": "Button opacity",
+    "vi": "Độ mờ nút"
+  },
+  "Chỉnh bố trí nút": {
+    "en": "Edit controls layout",
+    "vi": "Chỉnh bố trí nút"
+  },
+  "Edit controls layout": {
+    "en": "Edit controls layout",
+    "vi": "Chỉnh bố trí nút"
+  },
+  "Khôi phục bố trí nút": {
+    "en": "Reset controls layout",
+    "vi": "Khôi phục bố trí nút"
+  },
+  "Reset controls layout": {
+    "en": "Reset controls layout",
+    "vi": "Khôi phục bố trí nút"
+  },
+  "Khóa mục tiêu": {
+    "en": "Traditional lock-on",
+    "vi": "Khóa mục tiêu"
+  },
+  "Traditional lock-on": {
+    "en": "Traditional lock-on",
+    "vi": "Khóa mục tiêu"
+  },
+  "Hỗ trợ ngắm": {
+    "en": "Assisted aim",
+    "vi": "Hỗ trợ ngắm"
+  },
+  "Assisted aim": {
+    "en": "Assisted aim",
+    "vi": "Hỗ trợ ngắm"
+  },
+  "Hỗ trợ ngắm tự do": {
+    "en": "Assisted free aim",
+    "vi": "Hỗ trợ ngắm tự do"
+  },
+  "Assisted free aim": {
+    "en": "Assisted free aim",
+    "vi": "Hỗ trợ ngắm tự do"
+  },
+  "Ngắm tự do": {
+    "en": "Free aim",
+    "vi": "Ngắm tự do"
+  },
+  "Free aim": {
+    "en": "Free aim",
+    "vi": "Ngắm tự do"
+  },
+  "Ngắm bằng cảm biến": {
+    "en": "Gyro aiming",
+    "vi": "Ngắm bằng cảm biến"
+  },
+  "Gyro aiming": {
+    "en": "Gyro aiming",
+    "vi": "Ngắm bằng cảm biến"
+  },
+  "Lái bằng nghiêng máy": {
+    "en": "Tilt steering",
+    "vi": "Lái bằng nghiêng máy"
+  },
+  "Tilt steering": {
+    "en": "Tilt steering",
+    "vi": "Lái bằng nghiêng máy"
+  },
+  "Độ nhạy": {
+    "en": "Sensitivity",
+    "vi": "Độ nhạy"
+  },
+  "Sensitivity": {
+    "en": "Sensitivity",
+    "vi": "Độ nhạy"
+  },
+  "Tắt": {
+    "en": "Off",
+    "vi": "Tắt"
+  },
+  "Off": {
+    "en": "Off",
+    "vi": "Tắt"
+  },
+  "Bật": {
+    "en": "On",
+    "vi": "Bật"
+  },
+  "On": {
+    "en": "On",
+    "vi": "Bật"
+  },
+  "Tải toàn bộ dữ liệu": {
+    "en": "Download all game files",
+    "vi": "Tải toàn bộ dữ liệu"
+  },
+  "Download all game files": {
+    "en": "Download all game files",
+    "vi": "Tải toàn bộ dữ liệu"
+  },
+  "Tải về": {
+    "en": "Download",
+    "vi": "Tải về"
+  },
+  "Download": {
+    "en": "Download",
+    "vi": "Tải về"
+  },
+  "Đang tải": {
+    "en": "Downloading",
+    "vi": "Đang tải"
+  },
+  "Downloading": {
+    "en": "Downloading",
+    "vi": "Đang tải"
+  },
+  "Tạm dừng": {
+    "en": "Pause",
+    "vi": "Tạm dừng"
+  },
+  "Pause": {
+    "en": "Pause",
+    "vi": "Tạm dừng"
+  },
+  "Xóa": {
+    "en": "Remove",
+    "vi": "Xóa"
+  },
+  "Remove": {
+    "en": "Remove",
+    "vi": "Xóa"
+  },
+  "Xong": {
+    "en": "Done",
+    "vi": "Xong"
+  },
+  "Done": {
+    "en": "Done",
+    "vi": "Xong"
+  },
+  "Quay lại": {
+    "en": "Back",
+    "vi": "Quay lại"
+  },
+  "Back": {
+    "en": "Back",
+    "vi": "Quay lại"
+  },
+  "Cài đặt": {
+    "en": "Settings",
+    "vi": "Cài đặt"
+  },
+  "Settings": {
+    "en": "Settings",
+    "vi": "Cài đặt"
+  },
+  "Thiết bị": {
+    "en": "This device",
+    "vi": "Thiết bị"
+  },
+  "This device": {
+    "en": "This device",
+    "vi": "Thiết bị"
+  },
+  "Chia sẻ log": {
+    "en": "Share log",
+    "vi": "Chia sẻ log"
+  },
+  "Share log": {
+    "en": "Share log",
+    "vi": "Chia sẻ log"
+  },
+  "Tự chọn nơi lưu hoặc gửi log lần này và lần trước": {
+    "en": "Save or send this run's log and the previous one yourself",
+    "vi": "Tự chọn nơi lưu hoặc gửi log lần này và lần trước"
+  },
+  "Save or send this run's log and the previous one yourself": {
+    "en": "Save or send this run's log and the previous one yourself",
+    "vi": "Tự chọn nơi lưu hoặc gửi log lần này và lần trước"
+  },
+  "Chọn nơi gửi log để hỗ trợ sửa lỗi tải game hoặc văng app": {
+    "en": "One tap. Helps fix crashes and loading problems",
+    "vi": "Chọn nơi gửi log để hỗ trợ sửa lỗi tải game hoặc văng app"
+  },
+  "One tap. Helps fix crashes and loading problems": {
+    "en": "One tap. Helps fix crashes and loading problems",
+    "vi": "Chọn nơi gửi log để hỗ trợ sửa lỗi tải game hoặc văng app"
+  },
+  "Chọn thư mục": {
+    "en": "Choose a folder",
+    "vi": "Chọn thư mục"
+  },
+  "Choose a folder": {
+    "en": "Choose a folder",
+    "vi": "Chọn thư mục"
+  },
+  "Chọn thư mục game": {
+    "en": "Choose game folder",
+    "vi": "Chọn thư mục game"
+  },
+  "Choose game folder": {
+    "en": "Choose game folder",
+    "vi": "Chọn thư mục game"
+  },
+  "Chọn tệp nén": {
+    "en": "Choose archive",
+    "vi": "Chọn tệp nén"
+  },
+  "Choose archive": {
+    "en": "Choose archive",
+    "vi": "Chọn tệp nén"
+  },
+  "Từ ứng dụng Tệp": {
+    "en": "From Files",
+    "vi": "Từ ứng dụng Tệp"
+  },
+  "From Files": {
+    "en": "From Files",
+    "vi": "Từ ứng dụng Tệp"
+  },
+  "Từ đường dẫn": {
+    "en": "From a link",
+    "vi": "Từ đường dẫn"
+  },
+  "From a link": {
+    "en": "From a link",
+    "vi": "Từ đường dẫn"
+  },
+  "Thư mục game": {
+    "en": "Game folder",
+    "vi": "Thư mục game"
+  },
+  "Game folder": {
+    "en": "Game folder",
+    "vi": "Thư mục game"
+  },
+  "Tệp nén trên iPhone": {
+    "en": "Archives on this iPhone",
+    "vi": "Tệp nén trên iPhone"
+  },
+  "Archives on this iPhone": {
+    "en": "Archives on this iPhone",
+    "vi": "Tệp nén trên iPhone"
+  },
+  "Chọn từ Tệp": {
+    "en": "Choose from Files",
+    "vi": "Chọn từ Tệp"
+  },
+  "Choose from Files": {
+    "en": "Choose from Files",
+    "vi": "Chọn từ Tệp"
+  },
+  "Tệp trên máy": {
+    "en": "Local files",
+    "vi": "Tệp trên máy"
+  },
+  "Local files": {
+    "en": "Local files",
+    "vi": "Tệp trên máy"
+  },
+  "Không tìm thấy dữ liệu game": {
+    "en": "Game files not found",
+    "vi": "Không tìm thấy dữ liệu game"
+  },
+  "Game files not found": {
+    "en": "Game files not found",
+    "vi": "Không tìm thấy dữ liệu game"
+  },
+  "Chưa có log": {
+    "en": "No log yet",
+    "vi": "Chưa có log"
+  },
+  "No log yet": {
+    "en": "No log yet",
+    "vi": "Chưa có log"
+  },
+  "Mở game một lần rồi thử lại.": {
+    "en": "Start the game once, then try again.",
+    "vi": "Mở game một lần rồi thử lại."
+  },
+  "Start the game once, then try again.": {
+    "en": "Start the game once, then try again.",
+    "vi": "Mở game một lần rồi thử lại."
+  },
+  "Đang kiểm tra dung lượng": {
+    "en": "Checking size",
+    "vi": "Đang kiểm tra dung lượng"
+  },
+  "Checking size": {
+    "en": "Checking size",
+    "vi": "Đang kiểm tra dung lượng"
+  },
+  "Đang kiểm tra tệp…": {
+    "en": "Checking files…",
+    "vi": "Đang kiểm tra tệp…"
+  },
+  "Checking files…": {
+    "en": "Checking files…",
+    "vi": "Đang kiểm tra tệp…"
+  },
+  "Nhập dữ liệu game": {
+    "en": "Import game files",
+    "vi": "Nhập dữ liệu game"
+  },
+  "Import game files": {
+    "en": "Import game files",
+    "vi": "Nhập dữ liệu game"
+  },
+  "Chọn dữ liệu game của bạn": {
+    "en": "Choose your game files",
+    "vi": "Chọn dữ liệu game của bạn"
+  },
+  "Choose your game files": {
+    "en": "Choose your game files",
+    "vi": "Chọn dữ liệu game của bạn"
+  },
+  "Đang giải nén": {
+    "en": "Unpacking",
+    "vi": "Đang giải nén"
+  },
+  "Unpacking": {
+    "en": "Unpacking",
+    "vi": "Đang giải nén"
+  },
+  "Đang cài dữ liệu": {
+    "en": "Installing",
+    "vi": "Đang cài dữ liệu"
+  },
+  "Installing": {
+    "en": "Installing",
+    "vi": "Đang cài dữ liệu"
+  },
+  "Sẵn sàng": {
+    "en": "Ready",
+    "vi": "Sẵn sàng"
+  },
+  "Ready": {
+    "en": "Ready",
+    "vi": "Sẵn sàng"
+  },
+  "Thử lại": {
+    "en": "Retry",
+    "vi": "Thử lại"
+  },
+  "Retry": {
+    "en": "Retry",
+    "vi": "Thử lại"
+  },
+  "Dừng": {
+    "en": "Stop",
+    "vi": "Dừng"
+  },
+  "Stop": {
+    "en": "Stop",
+    "vi": "Dừng"
+  },
+  "Chia sẻ": {
+    "en": "Share",
+    "vi": "Chia sẻ"
+  },
+  "Share": {
+    "en": "Share",
+    "vi": "Chia sẻ"
+  },
+  "Áp dụng": {
+    "en": "Apply",
+    "vi": "Áp dụng"
+  },
+  "Apply": {
+    "en": "Apply",
+    "vi": "Áp dụng"
+  },
+  "Chỉnh sửa": {
+    "en": "Edit",
+    "vi": "Chỉnh sửa"
+  },
+  "Edit": {
+    "en": "Edit",
+    "vi": "Chỉnh sửa"
+  },
+  "Lưu": {
+    "vi": "Lưu",
+    "en": "Save"
+  },
+  "Save": {
+    "en": "Save",
+    "vi": "Lưu"
+  },
+  "Hướng dẫn": {
+    "en": "Help",
+    "vi": "Hướng dẫn"
+  },
+  "Help": {
+    "en": "Help",
+    "vi": "Hướng dẫn"
+  },
+  "Điều khiển:": {
+    "en": "Controls:",
+    "vi": "Điều khiển:"
+  },
+  "Controls:": {
+    "en": "Controls:",
+    "vi": "Điều khiển:"
+  },
+  "Trên iPhone này": {
+    "en": "On this iPhone",
+    "vi": "Trên iPhone này"
+  },
+  "On this iPhone": {
+    "en": "On this iPhone",
+    "vi": "Trên iPhone này"
+  },
+  "Trong thư mục app": {
+    "en": "In the app folder",
+    "vi": "Trong thư mục app"
+  },
+  "In the app folder": {
+    "en": "In the app folder",
+    "vi": "Trong thư mục app"
+  },
+  " · đã kiểm tra toàn bộ tệp": {
+    "en": " · every file checked",
+    "vi": " · đã kiểm tra toàn bộ tệp"
+  },
+  " · every file checked": {
+    "en": " · every file checked",
+    "vi": " · đã kiểm tra toàn bộ tệp"
+  },
+  "Đóng rồi mở lại app để chơi": {
+    "en": "Close and reopen the app to play",
+    "vi": "Đóng rồi mở lại app để chơi"
+  },
+  "Close and reopen the app to play": {
+    "en": "Close and reopen the app to play",
+    "vi": "Đóng rồi mở lại app để chơi"
+  },
+  "Cần mở lại game để dùng": {
+    "en": "Restart needed for",
+    "vi": "Cần mở lại game để dùng"
+  },
+  "Restart needed for": {
+    "en": "Restart needed for",
+    "vi": "Cần mở lại game để dùng"
+  },
+  "Chất lượng, mặc định": {
+    "en": "Detail level, default",
+    "vi": "Chất lượng, mặc định"
+  },
+  "Detail level, default": {
+    "en": "Detail level, default",
+    "vi": "Chất lượng, mặc định"
+  },
+  "Độ phân giải dựng hình": {
+    "en": "Renders at",
+    "vi": "Độ phân giải dựng hình"
+  },
+  "Renders at": {
+    "en": "Renders at",
+    "vi": "Độ phân giải dựng hình"
+  },
+  "Đã tìm thấy tệp nén game": {
+    "en": "Found a game archive",
+    "vi": "Đã tìm thấy tệp nén game"
+  },
+  "Found a game archive": {
+    "en": "Found a game archive",
+    "vi": "Đã tìm thấy tệp nén game"
+  },
+  "Đang tìm dữ liệu trong thư mục và kiểm tra từng tệp.": {
+    "en": "Looking through every folder inside for your game, then checking each file.",
+    "vi": "Đang tìm dữ liệu trong thư mục và kiểm tra từng tệp."
+  },
+  "Looking through every folder inside for your game, then checking each file.": {
+    "en": "Looking through every folder inside for your game, then checking each file.",
+    "vi": "Đang tìm dữ liệu trong thư mục và kiểm tra từng tệp."
+  },
+  "Đường dẫn này là trang tải về": {
+    "en": "That link is a web page",
+    "vi": "Đường dẫn này là trang tải về"
+  },
+  "That link is a web page": {
+    "en": "That link is a web page",
+    "vi": "Đường dẫn này là trang tải về"
+  },
+  "Bấm nút tải trên trang; app sẽ tiếp nhận việc tải tệp.": {
+    "en": "Use the page's download button in the browser; the app takes over the download.",
+    "vi": "Bấm nút tải trên trang; app sẽ tiếp nhận việc tải tệp."
+  },
+  "Use the page's download button in the browser; the app takes over the download.": {
+    "en": "Use the page's download button in the browser; the app takes over the download.",
+    "vi": "Bấm nút tải trên trang; app sẽ tiếp nhận việc tải tệp."
+  },
+  "Để đủ dung lượng, tệp nén được giải phóng dần trong khi giải nén. Nếu quá trình dừng giữa chừng, bạn cần chuẩn bị lại tệp nén.": {
+    "en": "To fit on this iPhone, the archive is used up while it unpacks: once it's done, only the unpacked game is left. If unpacking stops half way, you'll need the archive again.",
+    "vi": "Để đủ dung lượng, tệp nén được giải phóng dần trong khi giải nén. Nếu quá trình dừng giữa chừng, bạn cần chuẩn bị lại tệp nén."
+  },
+  "To fit on this iPhone, the archive is used up while it unpacks: once it's done, only the unpacked game is left. If unpacking stops half way, you'll need the archive again.": {
+    "en": "To fit on this iPhone, the archive is used up while it unpacks: once it's done, only the unpacked game is left. If unpacking stops half way, you'll need the archive again.",
+    "vi": "Để đủ dung lượng, tệp nén được giải phóng dần trong khi giải nén. Nếu quá trình dừng giữa chừng, bạn cần chuẩn bị lại tệp nén."
+  },
+  "Language": {
+    "en": "Ngôn ngữ",
+    "vi": "Language"
+  },
+  "Ngôn ngữ": {
+    "en": "Ngôn ngữ",
+    "vi": "Language"
+  },
+  "Chọn Cốt truyện hoặc Tự do để bắt đầu.": {
+    "en": "Choose Story mode or Sandbox to play.",
+    "vi": "Chọn Cốt truyện hoặc Tự do để bắt đầu."
+  },
+  "Choose Story mode or Sandbox to play.": {
+    "en": "Choose Story mode or Sandbox to play.",
+    "vi": "Chọn Cốt truyện hoặc Tự do để bắt đầu."
+  },
+  "Đang tìm dữ liệu game…": {
+    "en": "Looking for your game files…",
+    "vi": "Đang tìm dữ liệu game…"
+  },
+  "Looking for your game files…": {
+    "en": "Looking for your game files…",
+    "vi": "Đang tìm dữ liệu game…"
+  },
+  "Bấm để xem tiến trình.": {
+    "en": "Tap to see the progress.",
+    "vi": "Bấm để xem tiến trình."
+  },
+  "Tap to see the progress.": {
+    "en": "Tap to see the progress.",
+    "vi": "Bấm để xem tiến trình."
+  },
+  "Đã tìm thấy thư mục game nhưng chưa dùng được. Bấm để xem cách khắc phục.": {
+    "en": "Found your game folder, but it can't be used yet. Tap to see why and how to fix it.",
+    "vi": "Đã tìm thấy thư mục game nhưng chưa dùng được. Bấm để xem cách khắc phục."
+  },
+  "Found your game folder, but it can't be used yet. Tap to see why and how to fix it.": {
+    "en": "Found your game folder, but it can't be used yet. Tap to see why and how to fix it.",
+    "vi": "Đã tìm thấy thư mục game nhưng chưa dùng được. Bấm để xem cách khắc phục."
+  },
+  "Địa chỉ máy chủ không hợp lệ": {
+    "en": "Server address isn't a web address",
+    "vi": "Địa chỉ máy chủ không hợp lệ"
+  },
+  "Server address isn't a web address": {
+    "en": "Server address isn't a web address",
+    "vi": "Địa chỉ máy chủ không hợp lệ"
+  },
+  "Bấm để thay đổi.": {
+    "en": "Tap to change it.",
+    "vi": "Bấm để thay đổi."
+  },
+  "Tap to change it.": {
+    "en": "Tap to change it.",
+    "vi": "Bấm để thay đổi."
+  },
+  "Chọn dữ liệu game": {
+    "en": "Add your game files",
+    "vi": "Chọn dữ liệu game"
+  },
+  "Add your game files": {
+    "en": "Add your game files",
+    "vi": "Chọn dữ liệu game"
+  },
+  "Bấm để chọn trên iPhone, từ đường dẫn hoặc tệp nén.": {
+    "en": "Tap to find them on this iPhone, or get them from a link or an archive.",
+    "vi": "Bấm để chọn trên iPhone, từ đường dẫn hoặc tệp nén."
+  },
+  "Tap to find them on this iPhone, or get them from a link or an archive.": {
+    "en": "Tap to find them on this iPhone, or get them from a link or an archive.",
+    "vi": "Bấm để chọn trên iPhone, từ đường dẫn hoặc tệp nén."
+  },
+  "Đã tìm thấy tệp nén game. Bấm để giải nén.": {
+    "en": "Found a game archive. Tap to unpack it.",
+    "vi": "Đã tìm thấy tệp nén game. Bấm để giải nén."
+  },
+  "Found a game archive. Tap to unpack it.": {
+    "en": "Found a game archive. Tap to unpack it.",
+    "vi": "Đã tìm thấy tệp nén game. Bấm để giải nén."
+  },
+  "Đọc dữ liệu từ máy chủ của bạn": {
+    "en": "Streaming from your server",
+    "vi": "Đọc dữ liệu từ máy chủ của bạn"
+  },
+  "Streaming from your server": {
+    "en": "Streaming from your server",
+    "vi": "Đọc dữ liệu từ máy chủ của bạn"
+  },
+  "Điều khiển cảm ứng đã sẵn sàng": {
+    "en": "Touch controls ready",
+    "vi": "Điều khiển cảm ứng đã sẵn sàng"
+  },
+  "Touch controls ready": {
+    "en": "Touch controls ready",
+    "vi": "Điều khiển cảm ứng đã sẵn sàng"
+  },
+  "Tìm lại": {
+    "en": "Look again",
+    "vi": "Tìm lại"
+  },
+  "Look again": {
+    "en": "Look again",
+    "vi": "Tìm lại"
+  },
+  "Chọn thư mục…": {
+    "en": "Choose a folder…",
+    "vi": "Chọn thư mục…"
+  },
+  "Choose a folder…": {
+    "en": "Choose a folder…",
+    "vi": "Chọn thư mục…"
+  },
+  "Kiểm tra lại toàn bộ tệp": {
+    "en": "Check every file again",
+    "vi": "Kiểm tra lại toàn bộ tệp"
+  },
+  "Check every file again": {
+    "en": "Check every file again",
+    "vi": "Kiểm tra lại toàn bộ tệp"
+  },
+  "Dữ liệu đã có trên iPhone": {
+    "en": "Already on this iPhone",
+    "vi": "Dữ liệu đã có trên iPhone"
+  },
+  "Already on this iPhone": {
+    "en": "Already on this iPhone",
+    "vi": "Dữ liệu đã có trên iPhone"
+  },
+  "Trong ứng dụng Tệp, chuyển thư mục game đã giải nén vào Trên iPhone › Mugoat. App sẽ tự tìm dữ liệu bên trong.": {
+    "en": "Easiest: in the Files app, move your unpacked game folder into On My iPhone › Mugoat. The app finds it there by itself, however deep it is.",
+    "vi": "Trong ứng dụng Tệp, chuyển thư mục game đã giải nén vào Trên iPhone › Mugoat. App sẽ tự tìm dữ liệu bên trong."
+  },
+  "Easiest: in the Files app, move your unpacked game folder into On My iPhone › Mugoat. The app finds it there by itself, however deep it is.": {
+    "en": "Easiest: in the Files app, move your unpacked game folder into On My iPhone › Mugoat. The app finds it there by itself, however deep it is.",
+    "vi": "Trong ứng dụng Tệp, chuyển thư mục game đã giải nén vào Trên iPhone › Mugoat. App sẽ tự tìm dữ liệu bên trong."
+  },
+  "Dữ liệu ở nơi khác? Chọn thư mục chứa game để app tìm bên trong.": {
+    "en": "Somewhere else? Choose any folder above it, even On My iPhone itself, and the app searches everything inside.",
+    "vi": "Dữ liệu ở nơi khác? Chọn thư mục chứa game để app tìm bên trong."
+  },
+  "Somewhere else? Choose any folder above it, even On My iPhone itself, and the app searches everything inside.": {
+    "en": "Somewhere else? Choose any folder above it, even On My iPhone itself, and the app searches everything inside.",
+    "vi": "Dữ liệu ở nơi khác? Chọn thư mục chứa game để app tìm bên trong."
+  },
+  "Đường dẫn tới dữ liệu game": {
+    "en": "Link to your game files",
+    "vi": "Đường dẫn tới dữ liệu game"
+  },
+  "Link to your game files": {
+    "en": "Link to your game files",
+    "vi": "Đường dẫn tới dữ liệu game"
+  },
+  "Với trang cần bấm Tải về, app mở trình duyệt để bạn chọn tệp cần tải.": {
+    "en": "A download page where you tap Download first works too: it opens here in a browser, and the app takes the download over.",
+    "vi": "Với trang cần bấm Tải về, app mở trình duyệt để bạn chọn tệp cần tải."
+  },
+  "A download page where you tap Download first works too: it opens here in a browser, and the app takes the download over.": {
+    "en": "A download page where you tap Download first works too: it opens here in a browser, and the app takes the download over.",
+    "vi": "Với trang cần bấm Tải về, app mở trình duyệt để bạn chọn tệp cần tải."
+  },
+  "Bạn cũng có thể nhập địa chỉ máy chủ dữ liệu của mình, chẳng hạn máy tính qua Tailscale, để đọc dữ liệu từ đó.": {
+    "en": "Or the address of your own game server (for example your computer over Tailscale): the game then streams its files from there.",
+    "vi": "Bạn cũng có thể nhập địa chỉ máy chủ dữ liệu của mình, chẳng hạn máy tính qua Tailscale, để đọc dữ liệu từ đó."
+  },
+  "Or the address of your own game server (for example your computer over Tailscale): the game then streams its files from there.": {
+    "en": "Or the address of your own game server (for example your computer over Tailscale): the game then streams its files from there.",
+    "vi": "Bạn cũng có thể nhập địa chỉ máy chủ dữ liệu của mình, chẳng hạn máy tính qua Tailscale, để đọc dữ liệu từ đó."
+  },
+  "Chọn tệp nén…": {
+    "en": "Choose an archive…",
+    "vi": "Chọn tệp nén…"
+  },
+  "Choose an archive…": {
+    "en": "Choose an archive…",
+    "vi": "Chọn tệp nén…"
+  },
+  "Từ tệp nén trong ứng dụng Tệp": {
+    "en": "From an archive in Files",
+    "vi": "Từ tệp nén trong ứng dụng Tệp"
+  },
+  "From an archive in Files": {
+    "en": "From an archive in Files",
+    "vi": "Từ tệp nén trong ứng dụng Tệp"
+  },
+  "Chọn tệp ZIP hoặc RAR của game. Nếu tệp có nhiều phần, chuẩn bị đủ các phần. App giải nén vào thư mục riêng và kiểm tra dữ liệu.": {
+    "en": "Got a .zip or .rar of the game (or all parts of a multi-part one) in Files? The app unpacks it straight into its own folder and checks every file. No separate unzip app needed.",
+    "vi": "Chọn tệp ZIP hoặc RAR của game. Nếu tệp có nhiều phần, chuẩn bị đủ các phần. App giải nén vào thư mục riêng và kiểm tra dữ liệu."
+  },
+  "Got a .zip or .rar of the game (or all parts of a multi-part one) in Files? The app unpacks it straight into its own folder and checks every file. No separate unzip app needed.": {
+    "en": "Got a .zip or .rar of the game (or all parts of a multi-part one) in Files? The app unpacks it straight into its own folder and checks every file. No separate unzip app needed.",
+    "vi": "Chọn tệp ZIP hoặc RAR của game. Nếu tệp có nhiều phần, chuẩn bị đủ các phần. App giải nén vào thư mục riêng và kiểm tra dữ liệu."
+  },
+  "Nút cảm ứng hoạt động như tay cầm, hỗ trợ ngắm và lái analog của game được giữ nguyên.": {
+    "en": "Controls act as a game controller, so the game's own aim assist and analog steering work. Assisted aim locks onto targets like on a console.",
+    "vi": "Nút cảm ứng hoạt động như tay cầm, hỗ trợ ngắm và lái analog của game được giữ nguyên."
+  },
+  "Controls act as a game controller, so the game's own aim assist and analog steering work. Assisted aim locks onto targets like on a console.": {
+    "en": "Controls act as a game controller, so the game's own aim assist and analog steering work. Assisted aim locks onto targets like on a console.",
+    "vi": "Nút cảm ứng hoạt động như tay cầm, hỗ trợ ngắm và lái analog của game được giữ nguyên."
+  },
+  "Xoay máy để điều chỉnh hướng ngắm. Chế độ nghiêng máy hỗ trợ hoặc thay thế thao tác lái cảm ứng; tư thế cầm máy lúc vào xe là hướng thẳng.": {
+    "en": "Move the phone to fine-tune your aim; turning your body turns the camera. Tilt steering turns the phone like a steering wheel: Assist adds fine control on top of the touch steering, Tilt to steer replaces it. The straight-ahead angle is however you hold the phone when you get in.",
+    "vi": "Xoay máy để điều chỉnh hướng ngắm. Chế độ nghiêng máy hỗ trợ hoặc thay thế thao tác lái cảm ứng; tư thế cầm máy lúc vào xe là hướng thẳng."
+  },
+  "Move the phone to fine-tune your aim; turning your body turns the camera. Tilt steering turns the phone like a steering wheel: Assist adds fine control on top of the touch steering, Tilt to steer replaces it. The straight-ahead angle is however you hold the phone when you get in.": {
+    "en": "Move the phone to fine-tune your aim; turning your body turns the camera. Tilt steering turns the phone like a steering wheel: Assist adds fine control on top of the touch steering, Tilt to steer replaces it. The straight-ahead angle is however you hold the phone when you get in.",
+    "vi": "Xoay máy để điều chỉnh hướng ngắm. Chế độ nghiêng máy hỗ trợ hoặc thay thế thao tác lái cảm ứng; tư thế cầm máy lúc vào xe là hướng thẳng."
+  },
+  "Cấu hình cao hơn mức khuyên dùng có thể thiếu RAM hoặc làm máy nóng. Nếu khởi động lỗi, app tự giảm cấu hình.": {
+    "en": "Presets above the recommended one can run out of memory or overheat on this phone; if a launch fails, the game falls back automatically.",
+    "vi": "Cấu hình cao hơn mức khuyên dùng có thể thiếu RAM hoặc làm máy nóng. Nếu khởi động lỗi, app tự giảm cấu hình."
+  },
+  "Presets above the recommended one can run out of memory or overheat on this phone; if a launch fails, the game falls back automatically.": {
+    "en": "Presets above the recommended one can run out of memory or overheat on this phone; if a launch fails, the game falls back automatically.",
+    "vi": "Cấu hình cao hơn mức khuyên dùng có thể thiếu RAM hoặc làm máy nóng. Nếu khởi động lỗi, app tự giảm cấu hình."
+  },
+  "\n⚠︎ Cao hơn mức khuyên dùng của máy: có thể thiếu RAM hoặc nóng máy.": {
+    "en": "\n⚠︎ Heavier than this phone's recommended setting: may run out of memory or overheat.",
+    "vi": "\n⚠︎ Cao hơn mức khuyên dùng của máy: có thể thiếu RAM hoặc nóng máy."
+  },
+  "\n⚠︎ Heavier than this phone's recommended setting: may run out of memory or overheat.": {
+    "en": "\n⚠︎ Heavier than this phone's recommended setting: may run out of memory or overheat.",
+    "vi": "\n⚠︎ Cao hơn mức khuyên dùng của máy: có thể thiếu RAM hoặc nóng máy."
+  },
+  "Ẩn nút khi kết nối tay cầm": {
+    "en": "Hide when a controller is connected",
+    "vi": "Ẩn nút khi kết nối tay cầm"
+  },
+  "Hide when a controller is connected": {
+    "en": "Hide when a controller is connected",
+    "vi": "Ẩn nút khi kết nối tay cầm"
+  },
+  "Nút cảm ứng hiện lại khi ngắt tay cầm": {
+    "en": "Touch controls come back as soon as the controller disconnects",
+    "vi": "Nút cảm ứng hiện lại khi ngắt tay cầm"
+  },
+  "Touch controls come back as soon as the controller disconnects": {
+    "en": "Touch controls come back as soon as the controller disconnects",
+    "vi": "Nút cảm ứng hiện lại khi ngắt tay cầm"
+  },
+  "Chơi bằng WASD và chuột. Khi có bàn phím và chuột, nút cảm ứng được ẩn.": {
+    "en": "Play with the PC controls (WASD, mouse look). With both connected, touch controls hide",
+    "vi": "Chơi bằng WASD và chuột. Khi có bàn phím và chuột, nút cảm ứng được ẩn."
+  },
+  "Play with the PC controls (WASD, mouse look). With both connected, touch controls hide": {
+    "en": "Play with the PC controls (WASD, mouse look). With both connected, touch controls hide",
+    "vi": "Chơi bằng WASD và chuột. Khi có bàn phím và chuột, nút cảm ứng được ẩn."
+  },
+  "Hỗ trợ khóa mục tiêu khi bắn, giống các bản GTA trên điện thoại": {
+    "en": "Fire locks on first, like the classic mobile GTA games",
+    "vi": "Hỗ trợ khóa mục tiêu khi bắn, giống các bản GTA trên điện thoại"
+  },
+  "Fire locks on first, like the classic mobile GTA games": {
+    "en": "Fire locks on first, like the classic mobile GTA games",
+    "vi": "Hỗ trợ khóa mục tiêu khi bắn, giống các bản GTA trên điện thoại"
+  },
+  "Cảm biến ngắm": {
+    "en": "Gyro",
+    "vi": "Cảm biến ngắm"
+  },
+  "Gyro": {
+    "en": "Gyro",
+    "vi": "Cảm biến ngắm"
+  },
+  "Góc nghiêng để đánh lái tối đa": {
+    "en": "Tilt for full steering",
+    "vi": "Góc nghiêng để đánh lái tối đa"
+  },
+  "Tilt for full steering": {
+    "en": "Tilt for full steering",
+    "vi": "Góc nghiêng để đánh lái tối đa"
+  },
+  "Tốc độ xoay": {
+    "en": "Turn speed",
+    "vi": "Tốc độ xoay"
+  },
+  "Turn speed": {
+    "en": "Turn speed",
+    "vi": "Tốc độ xoay"
+  },
+  "Đảo chiều dọc": {
+    "en": "Invert vertical",
+    "vi": "Đảo chiều dọc"
+  },
+  "Invert vertical": {
+    "en": "Invert vertical",
+    "vi": "Đảo chiều dọc"
+  },
+  "Tiếp tục chơi": {
+    "en": "Keep playing",
+    "vi": "Tiếp tục chơi"
+  },
+  "Keep playing": {
+    "en": "Keep playing",
+    "vi": "Tiếp tục chơi"
+  },
+  "Giảm cấu hình": {
+    "en": "Lower settings",
+    "vi": "Giảm cấu hình"
+  },
+  "Lower settings": {
+    "en": "Lower settings",
+    "vi": "Giảm cấu hình"
+  },
+  "Vẫn thử": {
+    "en": "Try anyway",
+    "vi": "Vẫn thử"
+  },
+  "Try anyway": {
+    "en": "Try anyway",
+    "vi": "Vẫn thử"
+  },
+  "Dùng cấu hình khuyên dùng": {
+    "en": "Use recommended",
+    "vi": "Dùng cấu hình khuyên dùng"
+  },
+  "Use recommended": {
+    "en": "Use recommended",
+    "vi": "Dùng cấu hình khuyên dùng"
+  },
+  "Không xóa được tệp": {
+    "en": "Can't remove files",
+    "vi": "Không xóa được tệp"
+  },
+  "Can't remove files": {
+    "en": "Can't remove files",
+    "vi": "Không xóa được tệp"
+  },
+  "Xóa dữ liệu đã tải?": {
+    "en": "Remove downloaded files?",
+    "vi": "Xóa dữ liệu đã tải?"
+  },
+  "Remove downloaded files?": {
+    "en": "Remove downloaded files?",
+    "vi": "Xóa dữ liệu đã tải?"
+  },
+  "Tải toàn bộ dữ liệu game?": {
+    "en": "Download all game files?",
+    "vi": "Tải toàn bộ dữ liệu game?"
+  },
+  "Download all game files?": {
+    "en": "Download all game files?",
+    "vi": "Tải toàn bộ dữ liệu game?"
+  },
+  "Tay cầm": {
+    "en": "Controller",
+    "vi": "Tay cầm"
+  },
+  "Controller": {
+    "en": "Controller",
+    "vi": "Tay cầm"
+  },
+  "Độ nhạy camera cảm ứng": {
+    "en": "Touch look sensitivity",
+    "vi": "Độ nhạy camera cảm ứng"
+  },
+  "Touch look sensitivity": {
+    "en": "Touch look sensitivity",
+    "vi": "Độ nhạy camera cảm ứng"
+  },
+  "Độ nhạy ngắm cảm ứng": {
+    "en": "Touch aim sensitivity",
+    "vi": "Độ nhạy ngắm cảm ứng"
+  },
+  "Touch aim sensitivity": {
+    "en": "Touch aim sensitivity",
+    "vi": "Độ nhạy ngắm cảm ứng"
+  },
+  "Máy chủ online": {
+    "vi": "Máy chủ online",
+    "en": "Online server"
+  },
+  "Chơi online": {
+    "vi": "Chơi online",
+    "en": "Play online"
+  },
+  "Tên người chơi": {
+    "vi": "Tên người chơi",
+    "en": "Player name"
+  },
+  "Phòng chơi": {
+    "vi": "Phòng chơi",
+    "en": "Room"
+  },
+  "Đóng rồi mở lại app để đổi máy chủ.": {
+    "vi": "Đóng rồi mở lại app để đổi máy chủ.",
+    "en": "Restart the app to change servers."
+  },
+  "Dùng cùng IP, phòng và chế độ chơi với bạn bè. Máy chủ Muguet dùng UDP 47520. Kết nối bắt đầu khi vào game.": {
+    "vi": "Dùng cùng IP, phòng và chế độ chơi với bạn bè. Máy chủ Muguet dùng UDP 47520. Kết nối bắt đầu khi vào game.",
+    "en": "Use the same IP, room and game mode as your friends. Muguet servers use UDP 47520. Connection starts when the game starts."
+  },
+  "Máy chủ không hợp lệ": {
+    "vi": "Máy chủ không hợp lệ",
+    "en": "Invalid server"
+  },
+  "Nhập IP hoặc hostname, ví dụ 192.168.1.10:47520.": {
+    "vi": "Nhập IP hoặc hostname, ví dụ 192.168.1.10:47520.",
+    "en": "Enter an IP or hostname, for example 192.168.1.10:47520."
+  },
+  "Tiện ích cheat bị tắt khi chơi online.": {
+    "vi": "Tiện ích cheat bị tắt khi chơi online.",
+    "en": "Cheats are disabled during online play."
+  },
+  "Offline": {
+    "en": "Offline",
+    "vi": "Ngoại tuyến"
+  },
+  "Online: waiting for game startup": {
+    "en": "Online: waiting for game startup",
+    "vi": "Online: chờ game khởi động"
+  },
+  "Online: invalid or unreachable server address": {
+    "en": "Online: invalid or unreachable server address",
+    "vi": "Online: địa chỉ máy chủ không hợp lệ hoặc không truy cập được"
+  },
+  "Online: room full — retrying": {
+    "en": "Online: room full — retrying",
+    "vi": "Online: phòng đầy — đang thử lại"
+  },
+  "Online: no server response — check IP / UDP 47520": {
+    "en": "Online: no server response — check IP / UDP 47520",
+    "vi": "Online: máy chủ không trả lời — kiểm tra IP / UDP 47520"
+  },
+  "Online: connected": {
+    "en": "Online: connected",
+    "vi": "Online: đã kết nối"
+  },
+  "player(s)": {
+    "en": "player(s)",
+    "vi": "người chơi"
+  },
+  "Online: connecting…": {
+    "en": "Online: connecting…",
+    "vi": "Online: đang kết nối…"
+  },
+  "PvP: bắn người chơi khác": {
+    "vi": "PvP: bắn người chơi khác",
+    "en": "PvP: attack other players"
+  },
+  "Mod & Tiện ích game": {
+    "vi": "Mod & Tiện ích game",
+    "en": "Mods & Game Utilities"
+  },
+  "Menu Mod & Cheat (Trainer)": {
+    "vi": "Menu Mod & Cheat (Trainer)",
+    "en": "Mod & Cheat Menu (Trainer)"
+  },
+  "Kích hoạt bất tử, full vũ khí, gọi xe cộ, máy bay, đổi thời tiết...": {
+    "vi": "Kích hoạt bất tử, full vũ khí, gọi xe cộ, máy bay, đổi thời tiết...",
+    "en": "Activate god mode, full weapons, spawn vehicles, change weather..."
+  },
+  "Quản lý Mod & Tệp game": {
+    "vi": "Quản lý Mod & Tệp game",
+    "en": "Mod & Game File Manager"
+  },
+  "Xem dữ liệu game & thư mục Mugoat trên iPhone để cài Mod": {
+    "vi": "Xem dữ liệu game & thư mục Mugoat trên iPhone để cài Mod",
+    "en": "Manage game data & Mugoat folder in Files app to install mods"
+  },
+  "Menu Mod cho phép kích hoạt ngay các tính năng gian lận, spawn phương tiện và can thiệp game. Bạn cũng có thể chép mod vào thư mục Mugoat trong ứng dụng Tệp.": {
+    "vi": "Menu Mod cho phép kích hoạt ngay các tính năng gian lận, spawn phương tiện và can thiệp game. Bạn cũng có thể chép mod vào thư mục Mugoat trong ứng dụng Tệp.",
+    "en": "Mod menu allows activating trainer features, spawning vehicles and gameplay tweaks. You can also copy mods to the Mugoat folder in the Files app."
+  },
+  "Aim, left hand": {
+    "vi": "Ngắm bắn (tay trái)",
+    "en": "Aim, left hand"
+  },
+  "Quản lý Mod": {
+    "vi": "Quản lý Mod",
+    "en": "Mod Manager"
+  },
+  "Cài đặt & Tệp Mod": {
+    "vi": "Cài đặt & Tệp Mod",
+    "en": "Mod Settings & Files"
+  },
+  "Danh sách Mod đã cài": {
+    "vi": "Danh sách Mod đã cài",
+    "en": "Installed Mods"
+  },
+  "Tinh chỉnh & Can thiệp Game (Tweaks)": {
+    "vi": "Tinh chỉnh & Can thiệp Game (Tweaks)",
+    "en": "Game Tweaks & Modding"
+  },
+  "Hướng dẫn tự làm Mod cho iOS": {
+    "vi": "Hướng dẫn tự làm Mod cho iOS",
+    "en": "Modding Guide for iOS"
+  },
+  "Nhập Mod từ tệp (.zip, .rpf, .meta)": {
+    "vi": "Nhập Mod từ tệp (.zip, .rpf, .meta)",
+    "en": "Import Mod from file (.zip, .rpf, .meta)"
+  },
+  "Vị trí thư mục Mod": {
+    "vi": "Vị trí thư mục Mod",
+    "en": "Mods Folder Location"
+  },
+  "Làm mới danh sách Mod": {
+    "vi": "Làm mới danh sách Mod",
+    "en": "Refresh Mod List"
+  },
+  "Chưa có tệp Mod nào": {
+    "vi": "Chưa có tệp Mod nào",
+    "en": "No mods installed"
+  },
+  "Đang bật": {
+    "vi": "Đang bật",
+    "en": "Enabled"
+  },
+  "Đã tắt": {
+    "vi": "Đã tắt",
+    "en": "Disabled"
+  },
+  "Đảo ngược trục dọc (Invert Y)": {
+    "vi": "Đảo ngược trục dọc (Invert Y)",
+    "en": "Invert vertical look (Invert Y)"
+  },
+  "Kéo lên để nhìn xuống, kéo xuống để nhìn lên": {
+    "vi": "Kéo lên để nhìn xuống, kéo xuống để nhìn lên",
+    "en": "Swipe up to look down, swipe down to look up"
+  },
+  "Đảo ngược trục dọc": {
+    "vi": "Đảo ngược trục dọc",
+    "en": "Invert vertical look"
+  },
+  "Cài đặt & Đồ họa": {
+    "vi": "Cài đặt & Đồ họa",
+    "en": "Settings & Graphics"
+  },
+  "Menu Cheat (Trainer)": {
+    "vi": "Menu Cheat (Trainer)",
+    "en": "Cheat Menu (Trainer)"
+  },
+  "Menu Cheat & Mod": {
+    "vi": "Menu Cheat & Mod",
+    "en": "Cheat Menu & Mods"
+  },
+  "Quản lý Mod riêng biệt": {
+    "vi": "Quản lý Mod riêng biệt",
+    "en": "Dedicated Mod Manager"
+  },
+  "Chép tệp mod (.rpf, .meta, .yft, .ytd) vào Tệp › Trên iPhone › Mugoat › mods. Với tệp nén, bấm Nhập Mod để giải nén. Tệp hướng dẫn .txt không được tính là mod.": {
+    "vi": "Chép tệp mod (.rpf, .meta, .yft, .ytd) vào Tệp › Trên iPhone › Mugoat › mods. Với tệp nén, bấm Nhập Mod để giải nén. Tệp hướng dẫn .txt không được tính là mod.",
+    "en": "Copy mod files (.rpf, .meta, .yft, .ytd) into Files › On My iPhone › Mugoat › mods. Use Import Mod to extract archives. Readme .txt files are not counted as mods."
+  },
+  "Đã giải nén %d tệp vào thư mục mods. Tệp hướng dẫn không được tính là mod.": {
+    "vi": "Đã giải nén %d tệp vào thư mục mods. Tệp hướng dẫn không được tính là mod.",
+    "en": "Extracted %d files into mods. Readme files are not counted as mods."
+  },
+  "Đã thêm %d tệp mod.": {
+    "vi": "Đã thêm %d tệp mod.",
+    "en": "Added %d mod files."
+  },
+  "Không thể nhập các tệp sau (định dạng không hỗ trợ hoặc không đọc/giải nén được):": {
+    "vi": "Không thể nhập các tệp sau (định dạng không hỗ trợ hoặc không đọc/giải nén được):",
+    "en": "Could not import these files (unsupported format or unable to read/extract):"
+  },
+  "Kết quả nhập Mod": {
+    "vi": "Kết quả nhập Mod",
+    "en": "Mod Import Results"
+  },
+  "Đang kiểm tra dữ liệu game. Vui lòng đợi kiểm tra xong rồi bấm Vào game.": {
+    "vi": "Đang kiểm tra dữ liệu game. Vui lòng đợi kiểm tra xong rồi bấm Vào game.",
+    "en": "Checking game files. Wait for the check to finish, then tap Play."
+  },
+  "Chọn chế độ chơi": {
+    "vi": "Chọn chế độ chơi",
+    "en": "Choose game mode"
+  },
+  "Không thể vào game": {
+    "vi": "Không thể vào game",
+    "en": "Unable to start game"
+  },
+  "Ứng dụng thiếu danh sách dữ liệu game. Vui lòng cài lại bản IPA đầy đủ.": {
+    "vi": "Ứng dụng thiếu danh sách dữ liệu game. Vui lòng cài lại bản IPA đầy đủ.",
+    "en": "The app is missing its game file manifest. Please reinstall the complete IPA."
+  }
+}

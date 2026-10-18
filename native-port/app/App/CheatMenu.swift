@@ -137,6 +137,7 @@ struct CheatMenuView: View {
     @State private var receivedMods: [ModFiles.Entry] = []
     let onApply: (String, CheatInputMode) -> Void
     var onSpawnVehicle: ((String) -> Void)? = nil
+    var onSpawnPed: ((String) -> Void)? = nil
     var onOpenMods: (() -> Void)? = nil
 
     private let categories = ["Nhân vật", "Phương tiện", "Chiến đấu", "Thế giới"]
@@ -299,12 +300,23 @@ struct CheatMenuView: View {
                     if !modPeds.isEmpty {
                         Section(header: Text("🧍 Nhân vật Mod (DLC Add-ons)")) {
                             ForEach(modPeds, id: \.self) { ped in
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Nhân vật: \(ped.uppercased())")
-                                        .fontWeight(.semibold)
-                                    Text("Gói DLC Add-on · là nhân vật, không phải xe nên không có nút triệu hồi xe")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                                HStack {
+                                    Image(systemName: "person.fill")
+                                        .foregroundColor(.yellow)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Nhân vật: \(ped.uppercased())")
+                                            .fontWeight(.semibold)
+                                        Text("Gói DLC Add-on · Chạm để gọi nhân vật đứng trước mặt")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Button("Triệu hồi") {
+                                        spawnPed(ped)
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.green)
+                                    .font(.caption.weight(.bold))
                                 }
                             }
                         }
@@ -511,6 +523,22 @@ struct CheatMenuView: View {
         dismiss()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             onSpawnVehicle?(clean)
+        }
+    }
+
+    private func spawnPed(_ model: String) {
+        if MugoatOnlineEnabled() {
+            withAnimation { toastMessage = "Không thể triệu hồi nhân vật bằng cheat trong Online!" }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                withAnimation { toastMessage = nil }
+            }
+            return
+        }
+        let clean = model.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !clean.isEmpty else { return }
+        dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            onSpawnPed?(clean)
         }
     }
 }

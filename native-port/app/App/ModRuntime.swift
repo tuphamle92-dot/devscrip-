@@ -330,12 +330,18 @@ enum ModRuntime {
     }
 }
 
-/// Follows the engine's vehicle spawn request so the UI can say what really happened.
+/// Follows the engine's vehicle/ped spawn request so the UI can say what really happened.
 enum ModSpawn {
-    /// Calls `done` on the main queue: true = vehicle created, false = engine gave up, nil = still loading.
+    /// Bumped by every watch; an older watcher stops when a newer spawn request replaced it.
+    private static var generation = 0
+
+    /// Calls `done` on the main queue: true = created, false = engine gave up, nil = still loading.
     static func watch(timeout: TimeInterval = 75, _ done: @escaping (Bool?) -> Void) {
+        generation += 1
+        let mine = generation
         let deadline = Date().addingTimeInterval(timeout)
         func poll() {
+            if mine != generation { return }
             let status = PGSpawnVehicleStatus()
             if status == 2 {
                 done(true)
@@ -350,5 +356,19 @@ enum ModSpawn {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { poll() }
     }
 
-    static let failureHint = "Nguyên nhân thường gặp: mod nhập sau khi game đã chạy (hãy thoát hẳn app rồi mở lại), gói thiếu model hoặc vehicles.meta, hoặc sai tên model. Bấm ⓘ ở tệp mod để xem báo cáo."
+    /// Exact reason reported by the engine for the last failed spawn ("" when unknown).
+    static func failureReason() -> String {
+        switch PGSpawnVehicleReason() {
+        case 1: return "Lý do: engine không bao giờ nạp xong model này (gói DLC chưa được đăng ký, thiếu vehicles.meta/peds.meta, sai tên model hoặc dữ liệu model bị lỗi)."
+        case 2: return "Lý do: chưa tìm thấy nhân vật người chơi."
+        case 3: return "Lý do: model đã nạp nhưng engine không tạo được đối tượng."
+        default: return ""
+        }
+    }
+
+    static var failureHint: String {
+        let reason = failureReason()
+        let common = "Nguyên nhân thường gặp: mod nhập sau khi game đã chạy (hãy thoát hẳn app rồi mở lại), gói thiếu model hoặc vehicles.meta, hoặc sai tên model. Bấm ⓘ ở tệp mod để xem báo cáo."
+        return reason.isEmpty ? common : reason + "\n" + common
+    }
 }

@@ -98,6 +98,45 @@ enum ModRuntime {
         return catalog(mods).models.contains(wanted)
     }
 
+    /// Turns what the player typed or tapped (a model name, the DLC pack name, a file name such as
+    /// "mbs1k.yft" or "dlc.rpf" paths) into the model name the engine knows. Names of the original
+    /// game (sultan, adder...) pass through unchanged. Look-alike characters (1/l, 0/o) are
+    /// tried only against models that are really installed, so a correct name is never rewritten.
+    static func resolveModel(_ input: String, mods: URL, vehiclesOnly: Bool = true) -> String {
+        var name = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if let slash = name.lastIndex(where: { $0 == "/" || $0 == "\\" }) { name = String(name[name.index(after: slash)...]) }
+        for ext in [".yft", ".ytd", ".rpf", ".meta", ".ydd", ".zip", ".rar"] where name.hasSuffix(ext) {
+            name = String(name.dropLast(ext.count))
+        }
+        guard !name.isEmpty else { return name }
+        let packs = catalog(mods).packs
+        let available = Set(packs.flatMap { vehiclesOnly ? $0.vehicleModels : $0.models })
+        if available.contains(name) { return name }
+        // The pack's own name: use its vehicle when the choice is unambiguous.
+        if let pack = packs.first(where: { $0.name == name }) {
+            let list = vehiclesOnly ? pack.vehicleModels : pack.models
+            if list.count == 1, let only = list.first { return only }
+            if let same = list.first(where: { $0 == name }) { return same }
+        }
+        func swapped(_ text: String, _ a: Character, _ b: Character) -> String {
+            String(text.map { $0 == a ? b : ($0 == b ? a : $0) })
+        }
+        for candidate in [swapped(name, "1", "l"), swapped(name, "0", "o"), swapped(swapped(name, "1", "l"), "0", "o")]
+        where candidate != name && available.contains(candidate) {
+            return candidate
+        }
+        return name
+    }
+
+    /// Installed vehicle models closest to `name` (shared prefix or substring), for "did you mean".
+    static func similarModels(to name: String, mods: URL) -> [String] {
+        let wanted = name.lowercased()
+        guard wanted.count >= 2 else { return [] }
+        let all = catalog(mods).vehicleModels
+        let close = all.filter { $0.contains(wanted) || wanted.contains($0) || $0.hasPrefix(String(wanted.prefix(3))) }
+        return Array(close.prefix(5))
+    }
+
     private static func decodeDLCList(_ data: Data) -> String? {
         let encodings: [String.Encoding] = [.utf8, .utf16, .isoLatin1]
         for encoding in encodings {

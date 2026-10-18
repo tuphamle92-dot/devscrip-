@@ -23,6 +23,19 @@ enum ControlContext: Equatable {
 }
 
 enum ControlStyle {
+    /// Action controls are drawn as English words, like the key hints on PC. Anything not listed
+    /// here (phone, camera, pause, settings, cheat, voice chat, radio, lights) keeps its icon.
+    static let actionText: [String: String] = [
+        "fire": "FIRE", "aim": "AIM", "leftFire": "FIRE", "leftAim": "AIM", "jump": "JUMP", "enter": "ENTER",
+        "weapons": "WEAPONS", "reload": "RELOAD", "cover": "COVER", "crouch": "STEALTH", "switchCharacter": "SWITCH",
+        "special": "SPECIAL", "interact": "USE", "detonate": "DETONATE", "zoomIn": "ZOOM +", "zoomOut": "ZOOM -",
+        "weaponPrev": "PREV", "weaponNext": "NEXT", "gas": "GAS", "brake": "BRAKE", "handbrake": "HAND\nBRAKE",
+        "driveBy": "SHOOT", "horn": "HORN", "lookBack": "LOOK\nBACK", "vehicleWeapon": "WEAPON", "dive": "DIVE",
+        "surface": "SURFACE", "airFire": "FIRE", "gear": "GEAR", "throttleUp": "CLIMB", "throttleDown": "DESCEND",
+        "yawLeft": "RUDDER\nLEFT", "yawRight": "RUDDER\nRIGHT", "up": "UP", "down": "DOWN", "left": "LEFT",
+        "right": "RIGHT", "accept": "SELECT", "back": "BACK", "tabLeft": "TAB\n<", "tabRight": "TAB\n>"]
+    /// Small always-there controls, packed into a compact bar at the top.
+    static let utility: Set<String> = ["camera", "phone", "pause", "settings", "cheat", "speaker", "mic", "buyWeapon", "radio", "lights"]
     /// GTA V's HUD blue, the only accent colour in the overlay.
     static let accent = UIColor(red: 0.365, green: 0.714, blue: 0.898, alpha: 1)
     /// SF Symbols for controls that have no generated icon.
@@ -46,6 +59,9 @@ final class ControlButton: UIView {
     /// A finger already down may slide onto this control (pedals).
     var slideTarget = false
     private let icon = UIImageView()
+    private let caption = UILabel()
+    private(set) var usesText = false
+    let isUtility: Bool
     private let halo = CAShapeLayer()
     private let ring = CAShapeLayer()
     private let progress = CAShapeLayer()
@@ -55,6 +71,7 @@ final class ControlButton: UIView {
 
     init(_ name: String, icon iconName: String, label: String) {
         self.name = name
+        self.isUtility = ControlStyle.utility.contains(name)
         super.init(frame: .zero)
         isUserInteractionEnabled = false
         isAccessibilityElement = true
@@ -77,7 +94,25 @@ final class ControlButton: UIView {
         icon.contentMode = .scaleAspectFit
         addSubview(icon)
         setIcon(iconName)
+        if let text = ControlStyle.actionText[name] {
+            usesText = true
+            icon.isHidden = true
+            caption.text = text
+            caption.textAlignment = .center
+            caption.numberOfLines = 2
+            caption.lineBreakMode = .byClipping
+            caption.adjustsFontSizeToFitWidth = true
+            caption.minimumScaleFactor = 0.5
+            caption.font = UIFont.systemFont(ofSize: 12, weight: .heavy)
+            addSubview(caption)
+        }
         updateAppearance()
+    }
+
+    /// Changes the word on a text control (Enter/Exit, Gas/Pedal).
+    func setText(_ text: String) {
+        guard usesText, caption.text != text else { return }
+        caption.text = text
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
@@ -97,6 +132,11 @@ final class ControlButton: UIView {
         let side = min(bounds.width, bounds.height) * 0.56
         icon.bounds.size = CGSize(width: side, height: side)
         icon.center = CGPoint(x: bounds.midX, y: bounds.midY)
+        if usesText {
+            let shortSide = min(bounds.width, bounds.height)
+            caption.font = UIFont.systemFont(ofSize: max(9, shortSide * 0.24), weight: .heavy)
+            caption.frame = bounds.insetBy(dx: bounds.width * 0.08, dy: bounds.height * 0.08)
+        }
         let path = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
         halo.path = UIBezierPath(roundedRect: bounds.insetBy(dx: -5, dy: -5), cornerRadius: cornerRadius + 5).cgPath
         ring.path = path
@@ -110,6 +150,7 @@ final class ControlButton: UIView {
         layer.borderWidth = 1
         layer.borderColor = UIColor.white.withAlphaComponent(pressed ? 0.9 : 0.28).cgColor
         icon.tintColor = pressed ? UIColor.black.withAlphaComponent(0.9) : UIColor.white.withAlphaComponent(0.92)
+        caption.textColor = pressed ? UIColor.black.withAlphaComponent(0.9) : UIColor.white.withAlphaComponent(0.95)
         ring.opacity = active && !pressed ? 1 : 0
         accessibilityValue = pressed ? "Held" : active ? L10n.text("On") : nil
     }
@@ -267,6 +308,12 @@ final class TouchControlsView: UIView {
     private static let minimumPress: CFTimeInterval = 0.07
     /// From the engine (PGReadControlHints): which situational buttons apply right now.
     private var hints = PGControlHints()
+    /// From the engine (PGReadSurroundings): a vehicle within reach, a weapon in hand.
+    private var surroundings = PGSurroundings()
+    /// Enter shows within `enterShowReach` of a vehicle and hides again past `enterHideReach`.
+    private var enterNear = true
+    private static let enterShowReach: Float = 6.0
+    private static let enterHideReach: Float = 8.0
     private var exitHoldStart: CFTimeInterval?
     private var phoneDock = false
     private var lastDockInput: CFTimeInterval = 0
@@ -322,10 +369,10 @@ final class TouchControlsView: UIView {
     private let phone = ControlButton("phone", icon: "phone", label: "Phone")
     private let pause = ControlButton("pause", icon: "pause", label: "Pause menu")
     private let settings = ControlButton("settings", icon: "settings", label: L10n.text("Settings"))
-    private let cheat = ControlButton("cheat", icon: "cheat", label: L10n.text("Lá»nh cheat"))
+    private let cheat = ControlButton("cheat", icon: "cheat", label: L10n.text("Lệnh cheat"))
     private let speaker = ControlButton("speaker", icon: "speaker", label: "Loa Voice Chat")
     private let mic = ControlButton("mic", icon: "mic", label: "Micro Voice Chat")
-    private let buyWeapon = ControlButton("buyWeapon", icon: "buy_weapon", label: "Mua sÃºng Ammu-Nation")
+    private let buyWeapon = ControlButton("buyWeapon", icon: "buy_weapon", label: "Mua súng Ammu-Nation")
     private let lights = ControlButton("lights", icon: "lights", label: "Headlights")
     private let radio = ControlButton("radio", icon: "radio", label: "Radio")
     // Menu and phone dock
@@ -392,7 +439,49 @@ final class TouchControlsView: UIView {
             if context == .onFoot && aimActive { list += [zoomIn, zoomOut] }
             if context == .onFoot && has(isWeaponWheel) { list += [weaponPrev, weaponNext] }
         }
-        return list
+        return contextual(list)
+    }
+
+    /// Like the key hints on PC: a control shows only when it can be used. Enter only close to a
+    /// vehicle (Exit always shows while in one); Aim only with a weapon in hand; Reload and Cover
+    /// only with a ranged weapon; Shoot from a vehicle only when armed. If the engine gives no
+    /// reading (`valid` false), nothing is hidden.
+    private func contextual(_ list: [ControlButton]) -> [ControlButton] {
+        guard !editing, !phoneDock, !promptActive, context != .menu, surroundings.valid else { return list }
+        var hidden: [ControlButton] = []
+        if context == .onFoot {
+            if surroundings.vehicleKnown && !enterNear { hidden.append(enter) }
+            if surroundings.weaponKnown {
+                if !surroundings.hasWeapon && !aimToggled { hidden += [aim, leftAim] }
+                if !surroundings.gunArmed { hidden += [reload, cover] }
+            }
+        } else if context == .car || context == .bike || context == .boat {
+            if surroundings.weaponKnown && !surroundings.gunArmed { hidden.append(driveBy) }
+            hidden.append(vehicleWeapon)
+        }
+        if hidden.isEmpty { return list }
+        return list.filter { button in !hidden.contains(where: { $0 === button }) }
+    }
+
+    /// Whether the engine should keep reading what is around the player.
+    var wantsSurroundings: Bool { context != .menu && !phoneDock }
+
+    /// Called every frame with the latest reading; rebuilds the visible controls when it matters.
+    func updateSurroundings(_ next: PGSurroundings) {
+        let before = (enterNear, surroundings.valid, surroundings.hasWeapon, surroundings.gunArmed)
+        surroundings = next
+        if next.valid && next.vehicleKnown {
+            if enterNear { if next.vehicleDistance > Self.enterHideReach { enterNear = false } }
+            else if next.vehicleDistance <= Self.enterShowReach { enterNear = true }
+        } else {
+            enterNear = true
+        }
+        // Fists in hand cannot stay in aim mode: the Aim button is gone.
+        if aimToggled, next.valid, next.weaponKnown, !next.hasWeapon {
+            aimToggled = false; aim.active = false; leftAim.active = false
+        }
+        let after = (enterNear, surroundings.valid, surroundings.hasWeapon, surroundings.gunArmed)
+        if before != after { updateVisibility() }
     }
 
     /// Engine state for the situational buttons; called every frame.
@@ -473,7 +562,7 @@ final class TouchControlsView: UIView {
         let opacity = CGFloat(GameSettings.shared.controlOpacity)
         for button in allButtons {
             let isShown = shown.contains(ObjectIdentifier(button))
-            var target: CGFloat = isShown ? (button === fire || button === gas ? min(1, opacity + 0.1) : opacity) : 0
+            var target: CGFloat = isShown ? (button === fire || button === gas ? min(1, opacity + 0.1) : (button.isUtility ? opacity * 0.8 : opacity)) : 0
             if editing, isShown, hiddenByPlayer(button) { target = 0.3 }
             if abs(button.alpha - target) > 0.01 {
                 UIView.animate(withDuration: UIAccessibility.isReduceMotionEnabled ? 0 : 0.15) { button.alpha = target }
@@ -483,6 +572,8 @@ final class TouchControlsView: UIView {
         weapons.setIcon("weapons")
         enter.accessibilityLabel = context == .onFoot ? "Enter vehicle" : context.flying ? "Hold to exit aircraft" : "Exit vehicle"
         gas.setIcon(context == .bicycle ? "pedal" : "gas")
+        gas.setText(context == .bicycle ? "PEDAL" : "GAS")
+        enter.setText(context == .onFoot ? "ENTER" : context.flying ? "HOLD\nEXIT" : "EXIT")
         if MugoatOnlineEnabled() {
             let spkOn = MugoatVoiceIsSpeakerEnabled()
             speaker.setIcon(spkOn ? "speaker" : "speaker_muted")
@@ -519,11 +610,13 @@ final class TouchControlsView: UIView {
         moveStick.baseDiameter = 120 * scale; moveStick.travel = 48 * scale
 
         // Utility bar, top centre: rare actions in the hard-to-reach zone.
-        let order = [radio, lights, camera, phone, pause, settings, cheat, speaker, mic, buyWeapon]
+        let order = [camera, phone, radio, lights, pause, settings, cheat, speaker, mic, buyWeapon]
         let bar = order.filter { visible.contains($0) }
+        let barSide = max(32, 34 * scale), barStep = barSide + 6 * scale
         for (i, button) in bar.enumerated() {
-            let offset = (CGFloat(i) - CGFloat(bar.count - 1) / 2) * 54 * scale / safe.width
-            place(button, 0.5 + offset, 0.08, 40)
+            let offset = (CGFloat(i) - CGFloat(bar.count - 1) / 2) * barStep / safe.width
+            button.bounds.size = CGSize(width: barSide, height: barSide)
+            button.center = point(0.5 + offset, 0.06)
         }
 
         // On foot: the primary action sits under the resting right thumb.
@@ -631,7 +724,7 @@ final class TouchControlsView: UIView {
 
     private func button(at point: CGPoint, slidingOnly: Bool = false) -> ControlButton? {
         // Nearest centre wins where the enlarged hit areas overlap.
-        visible.filter { (!slidingOnly || $0.slideTarget) && $0.contains(point: point, slop: $0 === fire || $0.isPedal ? 10 : 4) }
+        visible.filter { (!slidingOnly || $0.slideTarget) && $0.contains(point: point, slop: $0 === fire || $0.isPedal ? 10 : ($0.isUtility ? 8 : 4)) }
             .min { hypot($0.center.x - point.x, $0.center.y - point.y) < hypot($1.center.x - point.x, $1.center.y - point.y) }
     }
 
@@ -918,7 +1011,7 @@ final class TouchControlsView: UIView {
             !roles.values.contains { if case .radioWheel = $0 { return true }; if case .characterWheel = $0 { return true }; return false }
         PGTouchCameraEnabled(available)
         let sensitivity = aiming ? GameSettings.shared.aimSensitivity : GameSettings.shared.lookSensitivity
-        let delta = dragCamera.motion(sensitivity: sensitivity, invertedY: GameSettings.shared.invertLookY)
+        let delta = dragCamera.smoothedMotion(sensitivity: sensitivity, invertedY: GameSettings.shared.invertLookY)
         if available { PGTouchCameraDrag(delta.x, delta.y) }
     }
 

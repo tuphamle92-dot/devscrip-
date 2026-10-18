@@ -104,5 +104,11 @@ bool PGSpawnPed(const char *modelName);
 int PGSpawnVehicleStatus(void);
 // Why the last spawn failed (status -1): 1 model never loaded, 2 no player ped, 3 engine refused to create it.
 int PGSpawnVehicleReason(void);
+// Adds `amount` (> 0) to the story-mode wallet on the engine thread. Status: 0 idle, 1 pending,
+// 2 done, -1 this engine build has no STAT_SET_INT native, -2 the call was rejected.
+void PGAddMoney(int32_t amount);
+int PGMoneyStatus(void);
+// Wallet value written by the last successful PGAddMoney.
+int32_t PGMoneyBalance(void);
 void PGEmergencyExitVehicle(int mode);
 void PGForceSkipScene(void);

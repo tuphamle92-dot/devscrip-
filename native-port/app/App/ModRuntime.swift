@@ -8,12 +8,23 @@ enum ModRuntime {
         var packs: [ModPack] = []
         var problems: [String] = []
         var models: [String] { packs.flatMap(\.models).sorted() }
+        /// Vehicles only (peds are listed separately so they are never offered to the vehicle spawner).
+        var vehicleModels: [String] { packs.flatMap(\.vehicleModels).sorted() }
     }
 
     struct ImportReport {
         var installed: [ModPack] = []
         var problems: [String] = []
         var looseFiles = 0
+        /// Files that were accepted and saved in mods/ but are not mountable DLC packs: "name — type".
+        var stored: [String] = []
+
+        mutating func merge(_ other: ImportReport) {
+            installed += other.installed
+            problems += other.problems
+            looseFiles += other.looseFiles
+            stored += other.stored
+        }
     }
 
     /// Models that were mounted when the engine last started. nil until the first boot.
@@ -185,8 +196,77 @@ enum ModRuntime {
         }
     }
 
-    /// Unpacks an archive into a hidden staging folder, installs every dlc.rpf found in it and
-    /// reports exactly what happened. Nothing from a failed pack reaches the mods folder.
+    // MARK: - Accept any mod file
+
+    /// Largest loose file that is kept (the app copies, never edits, what it accepts).
+    static let maxStoreBytes: Int64 = 1024 * 1024 * 1024
+
+    /// Copies any accepted file into mods/<folder>/<relative path>. Existing copies are replaced.
+    /// Path components such as ".." are dropped so nothing can land outside mods/.
+    @discardableResult
+    static func store(_ source: URL, folder: String, relative: String, into mods: URL) throws -> URL {
+        let size = Int64((try? source.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+        guard size <= maxStoreBytes else {
+            throw ModError("Tệp \(ByteCountFormatter.string(fromByteCount: size, countStyle: .file)) quá lớn để lưu.")
+        }
+        let fm = FileManager.default
+        var target = mods
+        let cleanFolder = folder.split(separator: "/").map { String($0) }.filter { !$0.isEmpty && $0 != "." && $0 != ".." }
+        for part in cleanFolder { target.appendPathComponent(part) }
+        let parts = relative.split(separator: "/").map { String($0) }.filter { !$0.isEmpty && $0 != "." && $0 != ".." }
+        guard !parts.isEmpty else { throw ModError("Đường dẫn tệp không hợp lệ.") }
+        for part in parts { target.appendPathComponent(part) }
+        try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+        if fm.fileExists(atPath: target.path) { try fm.removeItem(at: target) }
+        try fm.copyItem(at: source, to: target)
+        return target
+    }
+
+    private static func folderName(for name: String) -> String {
+        let stem = (name as NSString).deletingPathExtension
+        let cleaned = stem.unicodeScalars.map { scalar -> String in
+            let ok = (scalar.value >= 48 && scalar.value <= 57) || (scalar.value >= 65 && scalar.value <= 90)
+                || (scalar.value >= 97 && scalar.value <= 122) || scalar == "_" || scalar == "-" || scalar == "."
+            return ok ? String(scalar) : "_"
+        }.joined()
+        return cleaned.isEmpty ? "mod" : String(cleaned.prefix(48))
+    }
+
+    /// Accepts one picked file of any type. A valid DLC pack is installed as mods/<pack>/dlc.rpf.
+    /// Everything else (loose .ytd/.yft/.meta, encrypted or Enhanced packs, scripts...) is still
+    /// saved and listed with its detected type; the reason it is not mounted is shown next to it.
+    static func importFile(_ source: URL, into mods: URL) -> ImportReport {
+        var report = ImportReport()
+        let name = source.lastPathComponent
+        let ext = source.pathExtension.lowercased()
+        guard ModFiles.isModFile(source) else {
+            report.problems.append("\(name): là ảnh hoặc tệp hướng dẫn, không phải mod nên bỏ qua.")
+            return report
+        }
+        if ext == "rpf" {
+            do {
+                report.installed.append(try importPack(source, into: mods))
+                return report
+            } catch {
+                report.problems.append("\(name): \(error.localizedDescription) Tệp vẫn được lưu để bạn xem lại.")
+            }
+        }
+        do {
+            let size = Int64((try? source.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+            let folder = ext == "rpf" ? "unverified-\(folderName(for: name))-\(size)" : "loose"
+            let target = try store(source, folder: folder, relative: name, into: mods)
+            let info = ModFiles.classify(target, original: target)
+            report.stored.append("\(name) — \(info.title)" + (info.detail.isEmpty ? "" : " · " + info.detail))
+            report.looseFiles += 1
+        } catch {
+            report.problems.append("\(name): không lưu được (\(error.localizedDescription)).")
+        }
+        return report
+    }
+
+    /// Unpacks an archive into a hidden staging folder, installs every valid dlc.rpf found in it and
+    /// saves every other mod file (with its folder structure) under mods/<archive name>/.
+    /// Nothing is silently dropped: every file ends up installed, stored or listed as a problem.
     static func installArchive(_ archive: URL, into mods: URL) -> ImportReport {
         var report = ImportReport()
         let fm = FileManager.default
@@ -215,25 +295,36 @@ enum ModRuntime {
             found.append(url)
         }
         found.sort { $0.path < $1.path }
+        let folder = folderName(for: label)
         for url in found {
             let ext = url.pathExtension.lowercased()
             var relative = url.resolvingSymlinksInPath().standardizedFileURL.path
             if relative.hasPrefix(stagingPath) { relative = String(relative.dropFirst(stagingPath.count)) }
             while relative.hasPrefix("/") { relative.removeFirst() }
+            if ModFiles.archiveExtensions.contains(ext) {
+                report.problems.append("\(label) › \(relative): tệp nén lồng nhau, hãy giải nén ra rồi nhập lại.")
+                continue
+            }
+            guard ModFiles.isModFile(url) else { continue }
             if ext == "rpf" {
                 do {
                     report.installed.append(try importPack(url, into: mods))
+                    continue
                 } catch {
-                    report.problems.append("\(label) › \(relative): \(error.localizedDescription)")
+                    report.problems.append("\(label) › \(relative): \(error.localizedDescription) Tệp vẫn được lưu để bạn xem lại.")
                 }
-            } else if ModFiles.archiveExtensions.contains(ext) {
-                report.problems.append("\(label) › \(relative): tệp nén lồng nhau, hãy giải nén ra rồi nhập lại.")
-            } else if ModFiles.modExtensions.contains(ext) {
+            }
+            do {
+                let target = try store(url, folder: folder, relative: relative, into: mods)
+                let info = ModFiles.classify(target, original: target)
+                report.stored.append("\(relative) — \(info.title)" + (info.detail.isEmpty ? "" : " · " + info.detail))
                 report.looseFiles += 1
+            } catch {
+                report.problems.append("\(label) › \(relative): không lưu được (\(error.localizedDescription)).")
             }
         }
-        if report.installed.isEmpty && report.problems.isEmpty {
-            report.problems.append("\(label): không có dlc.rpf. Engine chỉ nạp mod dạng gói DLC add-on; tệp .oiv hoặc mod thay thế tệp gốc chưa được hỗ trợ.")
+        if report.installed.isEmpty && report.stored.isEmpty && report.problems.isEmpty {
+            report.problems.append("\(label): không có tệp mod nào bên trong (chỉ có ảnh hoặc hướng dẫn).")
         }
         return report
     }

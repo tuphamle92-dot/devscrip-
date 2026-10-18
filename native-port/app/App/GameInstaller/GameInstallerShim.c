@@ -141,84 +141,143 @@ static long gi_extract_read_cb(void *context, const void **buffer) {
     return (long)n;
 }
 
+/// Normalises an archive path to a safe relative path: backslashes become slashes, "./" and
+/// empty parts are dropped, and any ".." part or absolute path is rejected (path traversal).
+/// Returns 1 and fills `out` on success, 0 if the entry must be skipped.
+static int gi_clean_path(const char *in, char *out, size_t cap) {
+    char tmp[1024];
+    size_t len = strlen(in);
+    if (len == 0 || len >= sizeof tmp || cap < sizeof tmp) return 0;
+    memcpy(tmp, in, len + 1);
+    for (size_t i = 0; i < len; i++) if (tmp[i] == '\\') tmp[i] = '/';
+    size_t o = 0;
+    char *save = NULL;
+    for (char *tok = strtok_r(tmp, "/", &save); tok; tok = strtok_r(NULL, "/", &save)) {
+        if (strcmp(tok, ".") == 0) continue;
+        if (strcmp(tok, "..") == 0) return 0;
+        size_t t = strlen(tok);
+        if (o + t + 2 > cap) return 0;
+        if (o) out[o++] = '/';
+        memcpy(out + o, tok, t);
+        o += t;
+    }
+    out[o] = '\0';
+    return o > 0;
+}
+
+/// mkdir -p for `path` (modified in place while walking, restored before returning).
+static void gi_mkdir_p(char *path) {
+    for (char *p = path + 1; *p; p++) {
+        if (*p == '/') {
+            *p = '\0';
+            mkdir(path, 0755);
+            *p = '/';
+        }
+    }
+    mkdir(path, 0755);
+}
+
+#define GI_EXTRACT_TOTAL_LIMIT ((int64_t)1 << 30) /* 1 GiB: stops zip bombs */
+
 int gi_extract_archive(const char *archive_path, const char *dest_dir) {
     if (!archive_path || !dest_dir) return -1;
     FILE *fp = fopen(archive_path, "rb");
     if (!fp) return -1;
 
-    struct gi_extract_ctx ctx;
-    ctx.fp = fp;
+    struct gi_extract_ctx *ctx = calloc(1, sizeof *ctx);
+    if (!ctx) { fclose(fp); return -1; }
+    ctx->fp = fp;
 
-    gi_reader *reader = gi_reader_open(gi_extract_read_cb, &ctx);
+    gi_reader *reader = gi_reader_open(gi_extract_read_cb, ctx);
     if (!reader) {
+        free(ctx);
         fclose(fp);
         return -1;
     }
 
     int files_extracted = 0;
+    int failed = 0;
+    int64_t total = 0;
     gi_entry_info info;
-    while (gi_reader_next(reader, &info) == GI_OK) {
-        if (!info.path || !*info.path) continue;
-        if (strstr(info.path, "__MACOSX/") || strstr(info.path, "/.") || info.path[0] == '.') {
+    int next;
+    while ((next = gi_reader_next(reader, &info)) == GI_OK || next == GI_WARN) {
+        char rel[1024];
+        if (!info.path || !gi_clean_path(info.path, rel, sizeof rel)) {
+            gi_reader_skip(reader);
+            continue;
+        }
+        // Hidden files, macOS resource forks and .DS_Store are never mods.
+        if (rel[0] == '.' || strstr(rel, "/.") || strncmp(rel, "__MACOSX/", 9) == 0) {
             gi_reader_skip(reader);
             continue;
         }
 
         char full_dest[1024];
-        snprintf(full_dest, sizeof(full_dest), "%s/%s", dest_dir, info.path);
-
-        if (info.kind == GI_ENTRY_DIRECTORY) {
-            char tmp[1024];
-            snprintf(tmp, sizeof(tmp), "%s", full_dest);
-            for (char *p = tmp + 1; *p; p++) {
-                if (*p == '/') {
-                    *p = '\0';
-                    mkdir(tmp, 0755);
-                    *p = '/';
-                }
-            }
-            mkdir(tmp, 0755);
+        int n = snprintf(full_dest, sizeof full_dest, "%s/%s", dest_dir, rel);
+        if (n <= 0 || (size_t)n >= sizeof full_dest) {
+            failed++;
+            gi_reader_skip(reader);
             continue;
         }
 
-        if (info.kind == GI_ENTRY_FILE) {
-            char tmp[1024];
-            snprintf(tmp, sizeof(tmp), "%s", full_dest);
-            char *last_slash = strrchr(tmp, '/');
-            if (last_slash) {
-                *last_slash = '\0';
-                for (char *p = tmp + 1; *p; p++) {
-                    if (*p == '/') {
-                        *p = '\0';
-                        mkdir(tmp, 0755);
-                        *p = '/';
-                    }
-                }
-                mkdir(tmp, 0755);
-            }
-
-            int fd = open(full_dest, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd >= 0) {
-                const void *buf = NULL;
-                size_t size = 0;
-                int64_t offset = 0;
-                while (gi_reader_data(reader, &buf, &size, &offset) == GI_OK) {
-                    if (size > 0 && buf) {
-                        write(fd, buf, size);
-                    }
-                }
-                close(fd);
-                files_extracted++;
-            } else {
-                gi_reader_skip(reader);
-            }
-        } else {
-            gi_reader_skip(reader);
+        if (info.kind == GI_ENTRY_DIRECTORY) {
+            gi_mkdir_p(full_dest);
+            continue;
         }
+
+        if (info.kind != GI_ENTRY_FILE || info.encrypted) {
+            if (info.kind == GI_ENTRY_FILE) failed++;
+            gi_reader_skip(reader);
+            continue;
+        }
+
+        char parent[1024];
+        snprintf(parent, sizeof parent, "%s", full_dest);
+        char *slash = strrchr(parent, '/');
+        if (slash) {
+            *slash = '\0';
+            gi_mkdir_p(parent);
+        }
+
+        int fd = open(full_dest, O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW, 0644);
+        if (fd < 0) {
+            failed++;
+            gi_reader_skip(reader);
+            continue;
+        }
+
+        int ok = 1;
+        int r;
+        const void *buf = NULL;
+        size_t size = 0;
+        int64_t offset = 0;
+        while ((r = gi_reader_data(reader, &buf, &size, &offset)) == GI_OK) {
+            const char *bytes = (const char *)buf;
+            size_t left = size;
+            total += (int64_t)size;
+            if (total > GI_EXTRACT_TOTAL_LIMIT) { ok = 0; break; }
+            while (ok && left > 0 && bytes) {
+                ssize_t w = write(fd, bytes, left);
+                if (w <= 0) { ok = 0; break; }
+                bytes += w;
+                left -= (size_t)w;
+            }
+            if (!ok) break;
+        }
+        if (r != GI_EOF) ok = 0; // truncated, corrupt or bad CRC: never keep a partial file
+        close(fd);
+        if (!ok) {
+            unlink(full_dest);
+            failed++;
+            if (total > GI_EXTRACT_TOTAL_LIMIT || r == GI_FATAL) break;
+            continue;
+        }
+        files_extracted++;
     }
 
     gi_reader_close(reader);
+    free(ctx);
     fclose(fp);
+    if (files_extracted == 0) return failed ? -1 : 0;
     return files_extracted;
 }
-

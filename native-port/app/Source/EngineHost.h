@@ -50,6 +50,19 @@ typedef struct {
   bool radioWheelOpen; // the radio wheel is up
 } PGControlHints;
 PGControlHints PGReadControlHints(uint32_t touchContext);
+// What is around the player, so touch buttons can show only when they apply (Enter only close to
+// a vehicle, Aim/Reload only with a weapon in hand). Filled from the engine thread a few times a
+// second while PGSetSurroundingsWanted(true). When `valid` is false nothing is hidden.
+typedef struct {
+  bool valid;            // a fresh reading exists
+  bool vehicleKnown;     // vehicleDistance is meaningful
+  float vehicleDistance; // metres to the closest vehicle (very large when none)
+  bool weaponKnown;      // hasWeapon / gunArmed are meaningful
+  bool hasWeapon;        // something other than bare fists is selected
+  bool gunArmed;         // a ranged weapon is selected
+} PGSurroundings;
+void PGSetSurroundingsWanted(bool wanted);
+PGSurroundings PGReadSurroundings(void);
 // Keyboard and mouse, through the game's own PC input (the block the browser build wrote): key
 // state bytes indexed by Windows virtual-key code, and mouse words after them.
 void PGSetKey(uint8_t virtualKey, bool down);

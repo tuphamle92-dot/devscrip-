@@ -86,7 +86,10 @@ pub unsafe extern "C" fn MugoatOnlineStatus(output: *mut c_char, capacity: usize
 pub extern "C" fn MugoatOnlineShutdown() { if ENABLED.load(Ordering::Acquire) { mp::shutdown(); } }
 #[no_mangle]
 pub unsafe extern "C" fn mugoat_script_tick(instance: *mut c_void, thread: u64, tls: u64) {
-    if !ENABLED.load(Ordering::Acquire) || instance.is_null() || tls==0 { return; }
+    if instance.is_null() || tls==0 { return; }
+    // Online runs the multiplayer tick; the police career also runs offline.
+    let online = ENABLED.load(Ordering::Acquire);
+    if !online && !police::enabled() { return; }
     IN_TICK.with(|active| {
         if active.replace(true) { return; }
         RT.get_or_init(|| Runtime { mem: SharedMemory { instance: instance as usize } });
@@ -95,7 +98,7 @@ pub unsafe extern "C" fn mugoat_script_tick(instance: *mut c_void, thread: u64, 
         let Some(active_thread) = tls.checked_add(3088) else { active.set(false); return; };
         let saved = read_u64(memory, active_thread);
         if saved.is_none() { active.set(false); return; }
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| mp::script_tick(&mut caller,thread,tls)));
+        let result = if online { std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| mp::script_tick(&mut caller,thread,tls))) } else { Ok(Ok(())) };
         // The original script hook also restores this on its normal path.
         // Preserve it if Rust rejects a sync update or catches a panic.
         write_u64(memory, active_thread, saved.unwrap());

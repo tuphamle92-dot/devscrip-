@@ -99,6 +99,10 @@ uint64_t PGMemoryBudgetQueries(void);
 uint64_t PGMemoryBudgetClamps(void);
 void PGAssetHealth(uint64_t out[6]);
 bool PGSpawnVehicle(const char *modelName);
+// Spawns a character (ped) model 2.5 m in front of the player. Shares the status below.
+bool PGSpawnPed(const char *modelName);
 int PGSpawnVehicleStatus(void);
+// Why the last spawn failed (status -1): 1 model never loaded, 2 no player ped, 3 engine refused to create it.
+int PGSpawnVehicleReason(void);
 void PGEmergencyExitVehicle(int mode);
 void PGForceSkipScene(void);

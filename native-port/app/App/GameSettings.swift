@@ -137,14 +137,13 @@ final class GameSettings {
         get { defaults.object(forKey: "hideTouchWithController") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "hideTouchWithController") }
     }
-    var sixtyFPS: Bool { frameRateCap != 30 }
-    /// Frame rate cap: 30, 60, or 0 for unlocked (up to the screen's refresh rate, 120 on ProMotion).
+    var sixtyFPS: Bool { true }
+    /// Frame rate cap. Locked to 60 FPS: the engine's frame limiter, the display link and the
+    /// screen refresh rate all use 60, so ProMotion phones do not run 120 Hz polling and
+    /// presentation (less CPU, GPU and heat) and frame pacing stays even.
     var frameRateCap: Int {
-        get {
-            if let cap = defaults.object(forKey: "frameRateCap") as? Int, [0, 30, 60].contains(cap) { return cap }
-            return defaults.bool(forKey: "sixtyFPS") ? 60 : 30 // older versions stored a 60 FPS switch
-        }
-        set { defaults.set(newValue, forKey: "frameRateCap") }
+        get { 60 }
+        set { defaults.set(60, forKey: "frameRateCap") }
     }
     static func frameRateTitle(_ cap: Int) -> String { cap == 0 ? L10n.text("Unlocked") : "\(cap) FPS" }
 

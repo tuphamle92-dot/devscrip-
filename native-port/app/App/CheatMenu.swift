@@ -200,6 +200,23 @@ struct CheatMenuView: View {
                             .foregroundStyle(.secondary)
                     }
 
+                    Section(header: Text("💰 Buff tiền (Cốt truyện)")) {
+                        ForEach(Self.moneyPresets, id: \.self) { amount in
+                            HStack {
+                                Text("+" + Self.moneyText(amount)).fontWeight(.semibold)
+                                Spacer()
+                                Button(action: { addMoney(amount) }) {
+                                    Text(L10n.text("Nhận")).font(.caption.weight(.bold)).padding(.horizontal, 10).padding(.vertical, 4)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(.green)
+                            }
+                        }
+                        Text("Cộng thẳng vào ví nhân vật đang chơi (Michael/Franklin/Trevor). Không dùng được khi chơi Online.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Section(header: Text("Nhập lệnh tùy chỉnh")) {
                         HStack {
                             TextField("Nhập mã lệnh (vd: PAINKILLER)", text: $customCode)
@@ -487,6 +504,54 @@ struct CheatMenuView: View {
         }
     }
 
+    private static let moneyPresets: [Int32] = [1_000_000, 10_000_000, 100_000_000, 1_000_000_000]
+
+    private static func moneyText(_ value: Int32) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return "$" + (formatter.string(from: NSNumber(value: value)) ?? String(value))
+    }
+
+    private func flash(_ text: String, seconds: Double = 2.0) {
+        withAnimation { toastMessage = text }
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+            withAnimation { toastMessage = nil }
+        }
+    }
+
+    private func addMoney(_ amount: Int32) {
+        if MugoatOnlineEnabled() {
+            flash("Không thể buff tiền trong Multiplayer Online!")
+            return
+        }
+        if !engineRunning {
+            flash("Game chưa chạy: hãy vào game trước khi buff tiền")
+            return
+        }
+        PGAddMoney(amount)
+        flash("Đang cộng tiền…", seconds: 1.0)
+        watchMoney(amount, tries: 0)
+    }
+
+    /// The engine applies the request on its next frame; report what really happened.
+    private func watchMoney(_ amount: Int32, tries: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let status = PGMoneyStatus()
+            if status == 2 {
+                flash("💰 Đã cộng " + Self.moneyText(amount) + " · ví: " + Self.moneyText(PGMoneyBalance()), seconds: 3.0)
+            } else if status == -1 {
+                flash("Bản engine này chưa có lệnh đổi tiền (STAT_SET_INT)", seconds: 3.5)
+            } else if status == -2 {
+                flash("Engine từ chối lệnh đổi tiền", seconds: 3.5)
+            } else if tries < 8 {
+                watchMoney(amount, tries: tries + 1)
+            } else {
+                flash("Chưa xử lý được: hãy thoát menu và thử lại khi đang trong game", seconds: 3.5)
+            }
+        }
+    }
+
     private func apply(_ code: String, forcedMode: CheatInputMode? = nil) {
         if MugoatOnlineEnabled() {
             withAnimation { toastMessage = "Không thể dùng cheat trong Multiplayer Online!" }
@@ -517,8 +582,7 @@ struct CheatMenuView: View {
             }
             return
         }
-        var clean = model.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if clean == "mbs1k" { clean = "mbslk" }
+        let clean = model.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.isEmpty else { return }
         dismiss()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {

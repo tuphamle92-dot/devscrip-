@@ -130,6 +130,11 @@ struct CheatMenuView: View {
     @State private var inputMode: CheatInputMode = .console
     @State private var toastMessage: String?
     @State private var modVehicles: [String] = []
+    @State private var modKinds: [String: String] = [:]
+    @State private var modPackOf: [String: String] = [:]
+    @State private var modPeds: [String] = []
+    @State private var modProblems: [String: String] = [:]
+    @State private var receivedMods: [ModFiles.Entry] = []
     let onApply: (String, CheatInputMode) -> Void
     var onSpawnVehicle: ((String) -> Void)? = nil
     var onOpenMods: (() -> Void)? = nil
@@ -275,7 +280,7 @@ struct CheatMenuView: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text("Xe Mod: \(model.uppercased())")
                                             .fontWeight(.bold)
-                                        Text("Gói DLC Add-on · Chạm để gọi ngay")
+                                        Text(vehicleSubtitle(model))
                                             .font(.caption2)
                                             .foregroundStyle(.secondary)
                                     }
@@ -287,6 +292,37 @@ struct CheatMenuView: View {
                                     .tint(.green)
                                     .font(.caption.weight(.bold))
                                 }
+                            }
+                        }
+                    }
+
+                    if !modPeds.isEmpty {
+                        Section(header: Text("🧍 Nhân vật Mod (DLC Add-ons)")) {
+                            ForEach(modPeds, id: \.self) { ped in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Nhân vật: \(ped.uppercased())")
+                                        .fontWeight(.semibold)
+                                    Text("Gói DLC Add-on · là nhân vật, không phải xe nên không có nút triệu hồi xe")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+
+                    Section(header: Text("📁 Tệp Mod đã nhận (theo loại)")) {
+                        if receivedMods.isEmpty {
+                            Text("Chưa có tệp mod rời nào. Nhập .ytd, .yft, .meta, rpf… trong Quản lý Mod bên dưới.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(Array(receivedMods.prefix(60)), id: \.name) { entry in
+                                receivedRow(entry)
+                            }
+                            if receivedMods.count > 60 {
+                                Text("… và \(receivedMods.count - 60) tệp khác (xem đầy đủ trong Quản lý Mod)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -344,7 +380,7 @@ struct CheatMenuView: View {
                 }
             }
             .onAppear {
-                modVehicles = ModRuntime.catalog(ModManagerViewController.modsDirectory).models
+                refreshMods()
             }
             .overlay(alignment: .bottom) {
                 if let msg = toastMessage {
@@ -363,6 +399,80 @@ struct CheatMenuView: View {
         }
         .navigationViewStyle(.stack)
         .preferredColorScheme(.dark)
+    }
+
+    private func refreshMods() {
+        let directory = ModManagerViewController.modsDirectory
+        let catalog = ModRuntime.catalog(directory)
+        var kinds: [String: String] = [:]
+        var packs: [String: String] = [:]
+        for pack in catalog.packs {
+            for model in pack.vehicleModels {
+                kinds[model] = pack.vehicleKinds[model] ?? "Xe (chưa rõ loại)"
+                packs[model] = pack.name
+            }
+        }
+        var problems: [String: String] = [:]
+        for problem in catalog.problems {
+            if let split = problem.range(of: ": ") {
+                problems[String(problem[..<split.lowerBound])] = String(problem[split.upperBound...])
+            }
+        }
+        let mounted = Set(catalog.packs.map { $0.url.standardizedFileURL.path })
+        modVehicles = catalog.vehicleModels
+        modKinds = kinds
+        modPackOf = packs
+        modPeds = Array(Set(catalog.packs.flatMap { $0.pedModels })).sorted()
+        modProblems = problems
+        receivedMods = ModFiles.scan(directory).filter { !mounted.contains($0.url.standardizedFileURL.path) }
+    }
+
+    private func vehicleSubtitle(_ model: String) -> String {
+        let kind = modKinds[model] ?? "Xe (chưa rõ loại)"
+        let pack = modPackOf[model].map { "dlc_" + $0 } ?? "DLC"
+        return "\(kind) · Gói \(pack) · Chạm để gọi ngay"
+    }
+
+    private static func symbol(for group: ModFileInfo.Group) -> String {
+        switch group {
+        case .vehicle: return "car.fill"
+        case .ped: return "person.fill"
+        case .texture: return "photo"
+        case .script: return "chevron.left.forwardslash.chevron.right"
+        case .archive: return "shippingbox.fill"
+        case .data, .other: return "doc.fill"
+        }
+    }
+
+    private func statusText(for entry: ModFiles.Entry) -> String {
+        if !entry.isEnabled { return "Đã tắt" }
+        if let reason = modProblems[entry.name] { return "Chưa nạp: " + reason }
+        return "Đã nhận · chưa nạp vào game (engine chỉ nạp gói dlc.rpf hợp lệ)"
+    }
+
+    @ViewBuilder
+    private func receivedRow(_ entry: ModFiles.Entry) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: Self.symbol(for: entry.info.group))
+                .foregroundColor(Color(red: 0.365, green: 0.714, blue: 0.898))
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.name)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
+                Text(entry.info.title)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                if !entry.info.detail.isEmpty {
+                    Text(entry.info.detail)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Text(statusText(for: entry))
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+            }
+        }
     }
 
     private func apply(_ code: String, forcedMode: CheatInputMode? = nil) {

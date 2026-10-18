@@ -26,11 +26,11 @@ enum GraphicsPreset: Int, CaseIterable {
             return ["-shaderQuality=1", "-textureQuality=0", "-shadowQuality=-1", "-reflectionQuality=0", "-particleQuality=0",
                     "-grassQuality=0", "-cityDensity=0", "-lodScale=0", "-pedLodBias=0", "-vehicleLodBias=0", "-pedVariety=0", "-vehicleVariety=0"]
         case .balanced:
-            return ["-shaderQuality=1", "-textureQuality=0", "-shadowQuality=0", "-reflectionQuality=0", "-particleQuality=0",
-                    "-grassQuality=0", "-cityDensity=0.2", "-lodScale=0.2", "-pedLodBias=0", "-vehicleLodBias=0", "-pedVariety=0.2", "-vehicleVariety=0.2"]
+            return ["-shaderQuality=1", "-textureQuality=1", "-shadowQuality=0", "-reflectionQuality=0", "-particleQuality=0",
+                    "-grassQuality=0", "-cityDensity=0.3", "-lodScale=0.3", "-pedLodBias=0.1", "-vehicleLodBias=0.1", "-pedVariety=0.3", "-vehicleVariety=0.3"]
         case .quality:
             return ["-shaderQuality=1", "-textureQuality=1", "-shadowQuality=0", "-reflectionQuality=1", "-particleQuality=1",
-                    "-grassQuality=1", "-cityDensity=0.4", "-lodScale=0.4", "-pedLodBias=0.2", "-vehicleLodBias=0.2", "-pedVariety=0.4", "-vehicleVariety=0.4"]
+                    "-grassQuality=1", "-cityDensity=0.5", "-lodScale=0.5", "-pedLodBias=0.3", "-vehicleLodBias=0.3", "-pedVariety=0.5", "-vehicleVariety=0.5"]
         case .ultra:
             return ["-shaderQuality=1", "-textureQuality=1", "-shadowQuality=1", "-reflectionQuality=1", "-particleQuality=1",
                     "-grassQuality=1", "-cityDensity=0.6", "-lodScale=0.6", "-pedLodBias=0.4", "-vehicleLodBias=0.4", "-pedVariety=0.6", "-vehicleVariety=0.6"]

@@ -118,42 +118,163 @@ final class ModXML: NSObject, XMLParserDelegate {
 struct ModPack {
     let name: String
     let url: URL
+    /// Every model the menus may offer: add-on vehicles (vehicles.meta) plus peds.
     let models: [String]
+    let vehicleModels: [String]
+    let pedModels: [String]
+    /// Non-fatal findings. A pack with warnings still loads, but may misbehave in game.
+    let warnings: [String]
     let archive: RPFArchive
+
     static func validName(_ name: String) -> Bool {
         !name.isEmpty && name.utf8.count <= 63 && name.utf8.allSatisfy { (97...122).contains($0) || (48...57).contains($0) || $0 == 95 }
     }
+
+    private static func fileName(_ path: String) -> String {
+        path.split(separator: "/").last.map(String.init) ?? path
+    }
+
+    private static func isVehiclesMeta(_ path: String) -> Bool {
+        let file = fileName(path)
+        return file.hasSuffix(".meta") && (file.hasPrefix("vehicles") || file.hasSuffix("vehicles.meta"))
+    }
+
     init(url: URL) throws {
         let archive = try RPFArchive(url: url)
         guard let setup = archive.entries.first(where: { $0.path == "setup2.xml" }),
-              archive.entries.contains(where: { $0.path == "content.xml" }) else { throw ModError("Gói DLC thiếu setup2.xml hoặc content.xml.") }
-        let xml = try ModXML.read(archive.metadata(setup))
-        guard let device = xml.values["deviceName"]?.first?.lowercased(), device.hasPrefix("dlc_"), Self.validName(String(device.dropFirst(4))) else { throw ModError("Gói DLC không có deviceName hợp lệ.") }
-        name = String(device.dropFirst(4)); self.url = url; self.archive = archive
-        var models = Set<String>()
-        for entry in archive.entries where entry.path.hasSuffix("vehicles.meta") {
-            for model in (try? ModXML.read(archive.metadata(entry)).values["modelName"]) ?? [] {
-                let model = model.lowercased(); guard Self.validName(model) else { throw ModError("Tên model không hợp lệ: \(model)") }; models.insert(model)
-            }
+              let content = archive.entries.first(where: { $0.path == "content.xml" }) else {
+            throw ModError("Gói DLC thiếu setup2.xml hoặc content.xml ở thư mục gốc của dlc.rpf.")
         }
-        for entry in archive.entries where entry.path.hasSuffix("peds.meta") {
-            let meta = try? ModXML.read(archive.metadata(entry))
-            for model in (meta?.values["ModelName"] ?? []) + (meta?.values["Name"] ?? []) {
-                let model = model.lowercased(); if Self.validName(model) { models.insert(model) }
-            }
+        let setupXML = try ModXML.read(archive.metadata(setup))
+        guard let device = setupXML.values["deviceName"]?.first?.lowercased() else {
+            throw ModError("setup2.xml không có deviceName.")
         }
-        for entry in archive.entries where entry.path.hasSuffix(".rpf") {
-            let nested = try archive.nested(entry)
-            for resource in nested.entries where resource.path.hasSuffix(".yft") || resource.path.hasSuffix(".ytd") || resource.path.hasSuffix(".ydd") {
-                let expected = resource.path.hasSuffix(".yft") ? 162 : resource.path.hasSuffix(".ytd") ? 13 : 165
-                guard resource.resourceVersion == expected else { throw ModError("Gói \(name) dùng tài nguyên Enhanced không tương thích. Hãy dùng bản Legacy.") }
-                let base = (resource.path as NSString).lastPathComponent.components(separatedBy: ".").first?.lowercased() ?? ""
-                if !base.isEmpty && Self.validName(base) && !base.hasSuffix("_hi") {
-                    models.insert(base)
+        guard device.hasPrefix("dlc_"), Self.validName(String(device.dropFirst(4))) else {
+            throw ModError("deviceName không hợp lệ: \(device). Tên gói chỉ gồm a-z, 0-9, _ và bắt đầu bằng dlc_.")
+        }
+        let packName = String(device.dropFirst(4))
+        var warnings: [String] = []
+
+        // content.xml: which data files the pack asks the game to enable.
+        var fileTypes = Set<String>()
+        if let contentXML = try? ModXML.read(archive.metadata(content)) {
+            fileTypes = Set((contentXML.values["fileType"] ?? []).map { $0.uppercased() })
+        } else {
+            warnings.append("Không đọc được content.xml (có thể là bản nhị phân).")
+        }
+
+        // Resources: reject Enhanced-edition files, remember which .yft files exist.
+        var yftNames = Set<String>()
+        var incompatible: String? = nil
+        func inspect(_ entries: [RPFArchive.Entry]) {
+            for resource in entries {
+                let isYft = resource.path.hasSuffix(".yft")
+                let isYtd = resource.path.hasSuffix(".ytd")
+                let isYdd = resource.path.hasSuffix(".ydd")
+                guard isYft || isYtd || isYdd else { continue }
+                let expected = isYft ? 162 : (isYtd ? 13 : 165)
+                if resource.resourceVersion != expected {
+                    if incompatible == nil { incompatible = resource.path }
+                    continue
+                }
+                if isYft {
+                    let base = (Self.fileName(resource.path).components(separatedBy: ".").first ?? "").lowercased()
+                    if !base.isEmpty { yftNames.insert(base) }
                 }
             }
         }
-        guard !models.isEmpty else { throw ModError("DLC chưa có model xe hoặc nhân vật hợp lệ.") }
-        self.models = models.sorted()
+        inspect(archive.entries)
+        var scannedNested = true
+        for entry in archive.entries where entry.path.hasSuffix(".rpf") {
+            if let nested = try? archive.nested(entry) {
+                inspect(nested.entries)
+            } else {
+                scannedNested = false
+                warnings.append("Không đọc được RPF lồng \(entry.path) (nén/mã hóa); bỏ qua kiểm tra bên trong.")
+            }
+        }
+        if let bad = incompatible {
+            throw ModError("Gói \(packName) dùng tài nguyên Enhanced không tương thích (\(bad)). Hãy dùng bản Legacy.")
+        }
+
+        // Vehicles and handling.
+        var vehicles = Set<String>()
+        var handlingFiles = 0
+        var vehicleMetaFound = false
+        for entry in archive.entries where Self.isVehiclesMeta(entry.path) {
+            vehicleMetaFound = true
+            guard let xml = try? ModXML.read(archive.metadata(entry)) else {
+                warnings.append("Không đọc được \(entry.path) (nhị phân/mã hóa/quá lớn).")
+                continue
+            }
+            for raw in xml.values["modelName"] ?? [] {
+                let model = raw.lowercased()
+                if Self.validName(model) { vehicles.insert(model) }
+                else { warnings.append("Bỏ qua tên model không hợp lệ: \(raw)") }
+            }
+        }
+        for entry in archive.entries where Self.fileName(entry.path).hasSuffix("handling.meta") {
+            handlingFiles += 1
+        }
+
+        // Peds.
+        var peds = Set<String>()
+        for entry in archive.entries where entry.path.hasSuffix("peds.meta") {
+            let meta = try? ModXML.read(archive.metadata(entry))
+            for raw in (meta?.values["ModelName"] ?? []) + (meta?.values["Name"] ?? []) {
+                let model = raw.lowercased()
+                if Self.validName(model) { peds.insert(model) }
+            }
+        }
+
+        // No readable vehicles.meta: fall back to vehicle drawables (.yft), skipping LOD/HD variants.
+        var fromResources = Set<String>()
+        if vehicles.isEmpty {
+            for base in yftNames where Self.validName(base) && !base.hasSuffix("_hi") && !base.hasSuffix("_lod") {
+                fromResources.insert(base)
+            }
+        }
+
+        // Findings that commonly explain cars that fall, fly or vanish in game.
+        if !vehicles.isEmpty {
+            if !fileTypes.isEmpty && !fileTypes.contains("VEHICLE_METADATA_FILE") {
+                warnings.append("content.xml không khai báo VEHICLE_METADATA_FILE: xe có thể không được đăng ký.")
+            }
+            if handlingFiles == 0 && !fileTypes.contains("HANDLING_FILE") {
+                warnings.append("Gói không có handling.meta: xe dễ bị rơi, bay hoặc lật khi chạy.")
+            } else if handlingFiles > 0 && !fileTypes.isEmpty && !fileTypes.contains("HANDLING_FILE") {
+                warnings.append("Có handling.meta nhưng content.xml không khai báo HANDLING_FILE: xe sẽ dùng handling sai.")
+            }
+            if scannedNested {
+                for model in vehicles.sorted() where !yftNames.contains(model) {
+                    warnings.append("Không thấy \(model).yft trong gói (xe có thể vô hình hoặc không tạo được).")
+                }
+            }
+        } else if vehicleMetaFound {
+            warnings.append("vehicles.meta không có model nào dùng được.")
+        }
+
+        var all = vehicles
+        all.formUnion(fromResources)
+        all.formUnion(peds)
+        guard !all.isEmpty else { throw ModError("DLC chưa có model xe hoặc nhân vật hợp lệ.") }
+
+        self.name = packName
+        self.url = url
+        self.archive = archive
+        self.vehicleModels = vehicles.union(fromResources).sorted()
+        self.pedModels = peds.sorted()
+        self.models = all.sorted()
+        self.warnings = warnings
+    }
+
+    /// Human-readable summary for the mod manager.
+    var report: String {
+        var lines = ["Gói DLC: dlc_\(name)"]
+        if !vehicleModels.isEmpty { lines.append("Xe (\(vehicleModels.count)): " + vehicleModels.joined(separator: ", ")) }
+        if !pedModels.isEmpty { lines.append("Nhân vật (\(pedModels.count)): " + pedModels.joined(separator: ", ")) }
+        if warnings.isEmpty { lines.append("Không phát hiện vấn đề trong gói.") }
+        else { lines.append(contentsOf: warnings.map { "⚠︎ " + $0 }) }
+        return lines.joined(separator: "\n")
     }
 }

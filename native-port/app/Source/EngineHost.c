@@ -922,7 +922,12 @@ static int pg_spawn_kind = 0;           // 0 vehicle, 1 ped (character)
 static char pg_spawn_model_name[64];
 static uint32_t pg_spawn_model_hash = 0;
 static int pg_spawn_frames = 0;
+static double pg_spawn_start_ms = 0;     // wall-clock start: the timeout must not depend on the frame rate
+static int pg_spawn_create_attempts = 0; // CreateVehicle / CreatePed attempts once the model is loaded
 static pthread_mutex_t pg_spawn_lock = PTHREAD_MUTEX_INITIALIZER;
+// A model that is still not loaded after this long is not known to the engine (DLC not mounted).
+#define PG_SPAWN_TIMEOUT_MS 60000.0
+#define PG_SPAWN_MAX_CREATE_ATTEMPTS 8
 
 // Starts a spawn request. A request that is still waiting for its model is REPLACED by the new
 // one. Before, a mod model that never streamed in kept the spawner locked until the ~30 s
@@ -941,9 +946,6 @@ static bool pg_spawn_request(const char *modelName, int kind) {
   while (len > 0 && (pg_spawn_model_name[len - 1] == ' ' || pg_spawn_model_name[len - 1] == '\t' || pg_spawn_model_name[len - 1] == '\r' || pg_spawn_model_name[len - 1] == '\n')) {
     pg_spawn_model_name[--len] = '\0';
   }
-  if (!strcasecmp(pg_spawn_model_name, "mbs1k")) {
-    strcpy(pg_spawn_model_name, "mbslk");
-  }
   if (pg_spawn_model_name[0] == '0' && (pg_spawn_model_name[1] == 'x' || pg_spawn_model_name[1] == 'X')) {
     pg_spawn_model_hash = (uint32_t)strtoul(pg_spawn_model_name, NULL, 16);
   } else {
@@ -951,6 +953,8 @@ static bool pg_spawn_request(const char *modelName, int kind) {
   }
   pg_spawn_kind = kind;
   pg_spawn_frames = 0;
+  pg_spawn_create_attempts = 0;
+  pg_spawn_start_ms = timeMS(CLOCK_MONOTONIC);
   atomic_store(&pg_spawn_reason, 0);
   atomic_store(&pg_spawn_status, 1);
   pthread_mutex_unlock(&pg_spawn_lock);
@@ -998,12 +1002,13 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
   if (!mg_call_u32(instance, "mp:HasModelLoaded", loadedArgs, 1)) {
     pg_test_leave_script(instance, previous);
     char msg[192];
-    if (pg_spawn_frames == 300 || pg_spawn_frames == 900) {
+    if (pg_spawn_frames == 300 || pg_spawn_frames == 900 || pg_spawn_frames == 1800) {
       snprintf(msg, sizeof msg, "Spawn %s: model %s (0x%08X) still not loaded after %d frames", what, pg_spawn_model_name, model, pg_spawn_frames);
       pg_log(msg);
     }
-    // Allow up to 1800 frames (~30s at 60fps) for heavy/high-poly mod models to stream into memory
-    if (pg_spawn_frames > 1800) {
+    // Heavy mod models can take a while to stream in; the limit is wall-clock so a low frame rate
+    // does not shorten it.
+    if (timeMS(CLOCK_MONOTONIC) - pg_spawn_start_ms > PG_SPAWN_TIMEOUT_MS) {
       snprintf(msg, sizeof msg, "Spawn %s timed out: model %s (0x%08X) never loaded. The engine does not know this model (DLC not registered / wrong name) or its data could not be read.", what, pg_spawn_model_name, model);
       pg_log(msg);
       atomic_store(&pg_spawn_reason, 1);
@@ -1059,20 +1064,19 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
     return;
   }
 
-  // Place 4.5m forward and slightly elevated (+0.5m) so vehicle doesn't clip into player or ground
-  float vx = px - sinf(rad) * 4.5f;
-  float vy = py + cosf(rad) * 4.5f;
-  float vz = pz + 0.5f;
+  // Place the vehicle in front of the player, slightly elevated so it does not clip into the
+  // player or the ground. Each retry (one per frame) moves it further out and higher, which
+  // covers curbs, slopes and areas whose collision is still streaming in.
+  const int attempt = pg_spawn_create_attempts;
+  const float distance = 4.5f + 0.5f * (float)attempt;
+  float vx = px - sinf(rad) * distance;
+  float vy = py + cosf(rad) * distance;
+  float vz = pz + 0.5f + 0.4f * (float)attempt;
   uint64_t vehVector = w2c_game_f100(instance, 32);
   float *vv = pg_pointer(&env, vehVector, 24);
   vv[0] = vx; vv[1] = 0; vv[2] = vy; vv[3] = 0; vv[4] = vz; vv[5] = 0;
   MugoatValue vehArgs[6] = { mg_u32(model), mg_u64(vehVector), mg_f32(heading), mg_u32(0), mg_u32(0), mg_u32(0) };
   uint32_t vehicle = mg_call_u32(instance, "mp:CreateVehicle", vehArgs, 6);
-  if (!vehicle) {
-    // Retry with higher elevation in case of slope/curb collision
-    vv[4] = pz + 1.2f;
-    vehicle = mg_call_u32(instance, "mp:CreateVehicle", vehArgs, 6);
-  }
   if (vehicle) {
     // If player is already in a vehicle, warp them out first
     MugoatValue inVehArgs[2] = { mg_u32(ped), mg_u32(0) };
@@ -1087,6 +1091,10 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
     MugoatValue clearArgs[1] = { mg_u32(ped) };
     mg_call_void(instance, "mp:ClearPedTasksImmediately", clearArgs, 1);
 
+    // Mission entity so the ambient population manager does not clean the vehicle up.
+    MugoatValue missionArgs[3] = { mg_u32(vehicle), mg_u32(1), mg_u32(1) };
+    mg_call_void(instance, "mp:SetEntityAsMissionEntity", missionArgs, 3);
+
     MugoatValue sitArgs[3] = { mg_u32(ped), mg_u32(vehicle), mg_u32((uint32_t)-1) };
     mg_call_void(instance, "mp:SetPedIntoVehicle", sitArgs, 3);
 
@@ -1094,19 +1102,112 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
     MugoatValue engArgs[4] = { mg_u32(vehicle), mg_u32(1), mg_u32(1), mg_u32(0) };
     mg_call_void(instance, "mp:SetVehicleEngineOn", engArgs, 4);
 
-    char msg[128];
-    snprintf(msg, sizeof msg, "Spawned vehicle %s (0x%08X) id %u at %.1f, %.1f, %.1f", pg_spawn_model_name, model, vehicle, vx, vy, vz);
+    char msg[160];
+    snprintf(msg, sizeof msg, "Spawned vehicle %s (0x%08X) id %u at %.1f, %.1f, %.1f (attempt %d)", pg_spawn_model_name, model, vehicle, vx, vy, vz, attempt + 1);
     pg_log(msg);
     atomic_store(&pg_spawn_status, 2);
+  } else if (++pg_spawn_create_attempts < PG_SPAWN_MAX_CREATE_ATTEMPTS) {
+    // Keep the request pending: the next frame retries at a different spot.
+    if (attempt == 0) {
+      char msg[160];
+      snprintf(msg, sizeof msg, "Spawn vehicle %s (0x%08X): CreateVehicle returned 0, retrying", pg_spawn_model_name, model);
+      pg_log(msg);
+    }
   } else {
     char msg[160];
-    snprintf(msg, sizeof msg, "Failed to spawn vehicle %s (0x%08X): CreateVehicle returned 0", pg_spawn_model_name, model);
+    snprintf(msg, sizeof msg, "Failed to spawn vehicle %s (0x%08X): CreateVehicle returned 0 after %d attempts", pg_spawn_model_name, model, pg_spawn_create_attempts);
     pg_log(msg);
     atomic_store(&pg_spawn_reason, 3);
     atomic_store(&pg_spawn_status, -1);
   }
   pg_test_leave_script(instance, previous);
   pthread_mutex_unlock(&pg_spawn_lock);
+}
+
+
+// ---- Single-player money --------------------------------------------------------------------
+// The story-mode wallet is the stat SP<n>_TOTAL_CASH (n: 0 Michael, 1 Franklin, 2 Trevor). It is
+// changed through the engine's own STAT_SET_INT / STAT_GET_INT script commands on the game thread.
+// Those natives are exported by Scripts/prepare_online_exports.py only when the pinned engine build
+// has them; otherwise the request ends with status -1 and the app says so.
+static _Atomic int pg_money_request = 0; // amount waiting to be added (> 0), 0 when idle
+static _Atomic int pg_money_status = 0;  // 0 idle, 1 pending, 2 done, -1 natives missing, -2 call failed
+static _Atomic int pg_money_balance = 0; // balance written by the last successful request
+
+void PGAddMoney(int32_t amount) {
+  if (amount <= 0) return;
+  atomic_store(&pg_money_request, amount);
+  atomic_store(&pg_money_status, 1);
+}
+int PGMoneyStatus(void) { return atomic_load(&pg_money_status); }
+int32_t PGMoneyBalance(void) { return atomic_load(&pg_money_balance); }
+
+static bool pg_native_available(const char *name) {
+  uint32_t params[16] = { 0 };
+  uint32_t result = 0;
+  return mugoat_command_info(name, params, 16, &result) >= 0;
+}
+
+// Writes one character's wallet. Returns false when a script command could not be called.
+static bool pg_money_credit(w2c_game *instance, const char *prefix, int32_t amount, int32_t *balanceOut) {
+  char stat[48];
+  snprintf(stat, sizeof stat, "%s_TOTAL_CASH", prefix);
+  uint32_t hash = pg_joaat(stat);
+  int64_t balance = 0;
+  if (pg_native_available("mp:StatGetInt")) {
+    uint64_t out = w2c_game_f100(instance, 16);
+    int32_t *slot = pg_pointer(&env, out, 4);
+    *slot = 0;
+    MugoatValue getArgs[3] = { mg_u32(hash), mg_u64(out), mg_u32(0xFFFFFFFFu) };
+    MugoatValue getResult = { 0 };
+    if (mugoat_command_call((void *)instance, "mp:StatGetInt", getArgs, 3, &getResult)) balance = *slot;
+  }
+  balance += amount;
+  if (balance > 2147483647LL) balance = 2147483647LL;
+  if (balance < 0) balance = 0;
+  MugoatValue setArgs[3] = { mg_u32(hash), mg_u32((uint32_t)(int32_t)balance), mg_u32(1) };
+  MugoatValue setResult = { 0 };
+  if (!mugoat_command_call((void *)instance, "mp:StatSetInt", setArgs, 3, &setResult)) return false;
+  *balanceOut = (int32_t)balance;
+  return true;
+}
+
+static void pg_process_money(w2c_game *instance) {
+  if (atomic_load(&pg_money_status) != 1) return;
+  int amount = atomic_exchange(&pg_money_request, 0);
+  if (amount <= 0) { atomic_store(&pg_money_status, 0); return; }
+  char msg[160];
+  if (!pg_native_available("mp:StatSetInt")) {
+    pg_log("Money: this engine build does not export STAT_SET_INT; cannot change the wallet.");
+    atomic_store(&pg_money_status, -1);
+    return;
+  }
+  uint64_t previous = pg_test_enter_script(instance);
+  uint32_t ped = mg_call_u32(instance, "mp:PlayerPedId", NULL, 0);
+  MugoatValue modelArgs[1] = { mg_u32(ped) };
+  uint32_t model = ped ? mg_call_u32(instance, "mp:GetEntityModel", modelArgs, 1) : 0;
+  // The active character gets the money; any other model (e.g. free mode) credits all three wallets.
+  int first = 0, last = 2;
+  if (model == pg_joaat("player_zero")) first = last = 0;
+  else if (model == pg_joaat("player_one")) first = last = 1;
+  else if (model == pg_joaat("player_two")) first = last = 2;
+  bool ok = true;
+  int32_t balance = 0;
+  for (int i = first; i <= last && ok; i++) {
+    char prefix[8];
+    snprintf(prefix, sizeof prefix, "SP%d", i);
+    ok = pg_money_credit(instance, prefix, amount, &balance);
+  }
+  pg_test_leave_script(instance, previous);
+  if (ok) {
+    atomic_store(&pg_money_balance, balance);
+    atomic_store(&pg_money_status, 2);
+    snprintf(msg, sizeof msg, "Money: added %d, wallet now %d.", amount, balance);
+  } else {
+    atomic_store(&pg_money_status, -2);
+    snprintf(msg, sizeof msg, "Money: STAT_SET_INT call was rejected (argument types differ in this engine build).");
+  }
+  pg_log(msg);
 }
 
 
@@ -1415,6 +1516,7 @@ void pg_virtual_pad_apply(w2c_game *instance, uint64_t pad) {
   if (pad == 12840656) {
     pg_apply_targeting_mode(instance);
     pg_process_vehicle_spawn(instance);
+    pg_process_money(instance);
     pg_process_vehicle_exit(instance);
     pg_process_force_skip_scene(instance);
     pg_process_player_respawn(instance);

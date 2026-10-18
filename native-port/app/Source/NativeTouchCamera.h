@@ -7,11 +7,12 @@
 typedef struct { double x, y; } PGTouchCameraRemainder;
 
 // Convert one engine poll's queued drag to mouse pixels. Preserve sub-pixel
-// motion, but discard stale input after a stall or when touch look is disabled.
+// motion, but discard stale input after a long stall (over 0.3 s; a short hitch no longer eats
+// the drag, which made the camera feel stuck) or when touch look is disabled.
 static inline void pg_touch_camera_motion(PGTouchCameraRemainder *state,
     double x, double y, double seconds, bool enabled, int32_t *dx, int32_t *dy) {
     *dx = *dy = 0;
-    if (!enabled || !isfinite(x) || !isfinite(y) || !isfinite(seconds) || seconds <= 0 || seconds > 0.05) {
+    if (!enabled || !isfinite(x) || !isfinite(y) || !isfinite(seconds) || seconds <= 0 || seconds > 0.3) {
         state->x = state->y = 0;
         return;
     }

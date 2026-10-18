@@ -279,7 +279,9 @@ static void commit(CommitReason reason, id<CAMetalDrawable> drawable = nil) {
 		if (R->visNext > OCCLUSION_SLOTS - 1024 && !R->activeOcclusion) R->visNext = 0;
 	}
 	id<MTLCommandBuffer> cb = commandBuffer();
-	if (drawable) [cb presentDrawable:drawable];
+	// Never show a frame for less than 1/60 s: frames that finish early no longer arrive in bursts,
+	// so the pace stays an even 60 FPS (a slower frame is not delayed).
+	if (drawable) [cb presentDrawable:drawable afterMinimumDuration:1.0 / 60.0];
 	uint64_t serial = R->serial++;
 	auto *callbacks = new std::vector<std::function<void()>>();
 	callbacks->swap(R->onComplete);

@@ -200,7 +200,7 @@ final class SettingsViewController: UITableViewController {
                     button.setTitle(GameSettings.frameRateTitle(settings.frameRateCap) + " ▾", for: .normal)
                     button.showsMenuAsPrimaryAction = true
                     button.accessibilityLabel = L10n.text("Frame rate")
-                    button.menu = UIMenu(children: [30, 60, 0].map { cap in
+                    button.menu = UIMenu(children: [60].map { cap in
                         UIAction(title: GameSettings.frameRateTitle(cap), state: cap == settings.frameRateCap ? .on : .off) { [weak self] _ in
                             self?.settings.frameRateCap = cap; self?.reloadFooters(); self?.tableView.reloadData()
                         }

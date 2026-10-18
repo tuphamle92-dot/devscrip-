@@ -159,8 +159,10 @@ struct ModPack {
 
         // content.xml: which data files the pack asks the game to enable.
         var fileTypes = Set<String>()
+        var startupGroup = false
         if let contentXML = try? ModXML.read(archive.metadata(content)) {
             fileTypes = Set((contentXML.values["fileType"] ?? []).map { $0.uppercased() })
+            startupGroup = (contentXML.values["NameHash"] ?? []).contains { $0.uppercased().contains("STARTUP") }
         } else {
             warnings.append("Không đọc được content.xml (có thể là bản nhị phân).")
         }
@@ -246,6 +248,12 @@ struct ModPack {
         if !vehicles.isEmpty {
             if !fileTypes.isEmpty && !fileTypes.contains("VEHICLE_METADATA_FILE") {
                 warnings.append("content.xml không khai báo VEHICLE_METADATA_FILE: xe có thể không được đăng ký.")
+            }
+            if !fileTypes.isEmpty && !startupGroup {
+                warnings.append("content.xml không có nhóm GROUP_STARTUP: engine có thể không kích hoạt gói nên xe không được đăng ký (triệu hồi sẽ kẹt ở bước nạp model).")
+            }
+            if !fileTypes.isEmpty && !fileTypes.contains("RPF_FILE") && archive.entries.contains(where: { $0.path.hasSuffix(".rpf") }) {
+                warnings.append("Gói có RPF lồng nhưng content.xml không khai báo RPF_FILE: tài nguyên xe (yft/ytd) có thể không được nạp.")
             }
             if handlingFiles == 0 && !fileTypes.contains("HANDLING_FILE") {
                 warnings.append("Gói không có handling.meta: xe dễ bị rơi, bay hoặc lật khi chạy.")

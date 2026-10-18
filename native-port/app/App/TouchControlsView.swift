@@ -322,10 +322,10 @@ final class TouchControlsView: UIView {
     private let phone = ControlButton("phone", icon: "phone", label: "Phone")
     private let pause = ControlButton("pause", icon: "pause", label: "Pause menu")
     private let settings = ControlButton("settings", icon: "settings", label: L10n.text("Settings"))
-    private let cheat = ControlButton("cheat", icon: "cheat", label: L10n.text("Lệnh cheat"))
+    private let cheat = ControlButton("cheat", icon: "cheat", label: L10n.text("Lá»nh cheat"))
     private let speaker = ControlButton("speaker", icon: "speaker", label: "Loa Voice Chat")
     private let mic = ControlButton("mic", icon: "mic", label: "Micro Voice Chat")
-    private let buyWeapon = ControlButton("buyWeapon", icon: "buy_weapon", label: "Mua súng Ammu-Nation")
+    private let buyWeapon = ControlButton("buyWeapon", icon: "buy_weapon", label: "Mua sÃºng Ammu-Nation")
     private let lights = ControlButton("lights", icon: "lights", label: "Headlights")
     private let radio = ControlButton("radio", icon: "radio", label: "Radio")
     // Menu and phone dock
@@ -409,7 +409,7 @@ final class TouchControlsView: UIView {
     private func baseVisible() -> [ControlButton] {
         let online = MugoatOnlineEnabled()
         let isSandbox = (GameSettings.shared.gameMode == .sandbox)
-        let onlineButtons: [ControlButton] = online ? [speaker, mic, buyWeapon] : (isSandbox ? [buyWeapon] : [cheat, buyWeapon])
+        let onlineButtons: [ControlButton] = online ? [speaker, mic, buyWeapon] : (isSandbox ? [] : [cheat])
         let utility: [ControlButton] = context.driving ? [radio, lights, camera, phone, pause, settings] + onlineButtons : [camera, phone, pause, settings] + onlineButtons
         if context == .menu { return [pause, settings] + onlineButtons + [up, down, left, right, accept, back, tabLeft, tabRight] }
         if phoneDock { return [camera, phone, pause, settings] + onlineButtons + [up, down, left, right, accept, back] }

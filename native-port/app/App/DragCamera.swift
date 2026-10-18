@@ -7,6 +7,8 @@ struct DragCamera {
     private struct Finger { var start: CGPoint; var last: CGPoint; var active = false }
     private var fingers: [ObjectIdentifier: Finger] = [:]
     private var pending = CGPoint.zero
+    /// Finger travel not yet handed to the camera (see `smoothedMotion`).
+    private var reservoir = CGPoint.zero
 
     mutating func begin(_ id: ObjectIdentifier, at point: CGPoint) {
         fingers[id] = Finger(start: point, last: point)
@@ -24,12 +26,29 @@ struct DragCamera {
         pending.x += delta.x; pending.y += delta.y
     }
     mutating func end(_ id: ObjectIdentifier) { fingers[id] = nil }
-    mutating func reset() { fingers.removeAll(); pending = .zero }
+    mutating func reset() { fingers.removeAll(); pending = .zero; reservoir = .zero }
 
     mutating func motion(sensitivity: Double, invertedY: Bool = false) -> CGPoint {
         let delta = pending; pending = .zero
         let gain = min(max(sensitivity, 0.1), 10.0)
         return CGPoint(x: delta.x * gain, y: delta.y * gain * 0.85 * (invertedY ? -1 : 1))
+    }
+
+    /// Same travel as `motion`, but handed over over a few frames: each call releases most of what
+    /// is waiting and keeps the rest for the next one. A drag that arrives in uneven bursts (touch
+    /// at 60 Hz, engine frames of 17-30 ms) turns the camera evenly instead of in steps, and the
+    /// total never changes.
+    mutating func smoothedMotion(sensitivity: Double, invertedY: Bool = false) -> CGPoint {
+        let fresh = motion(sensitivity: sensitivity, invertedY: invertedY)
+        reservoir.x += fresh.x
+        reservoir.y += fresh.y
+        let share: CGFloat = 0.72
+        var out = CGPoint(x: reservoir.x * share, y: reservoir.y * share)
+        if abs(reservoir.x) < 0.4 { out.x = reservoir.x }
+        if abs(reservoir.y) < 0.4 { out.y = reservoir.y }
+        reservoir.x -= out.x
+        reservoir.y -= out.y
+        return out
     }
 
     /// Keep assisted aiming on pad 0. Relative finger motion becomes a pad

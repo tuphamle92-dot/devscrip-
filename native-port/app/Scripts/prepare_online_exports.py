@@ -50,6 +50,39 @@ def sections(wasm):
         if len(body) != size: raise ValueError('Truncated section')
         yield kind, body, wasm[start:r.pos]
 
+# Natives the police career would like to use but that mp.rs does not list. They are looked up in
+# the engine by name at build time; whatever is missing is simply skipped (never an error).
+NATIVE_WISH = {
+    'SetPlayerWantedLevel': ['SetPlayerWantedLevel', 'SetWantedLevel', 'AlterWantedLevel', 'ForceWantedLevel'],
+    'SetPlayerWantedLevelNow': ['SetPlayerWantedLevelNow', 'ApplyWantedLevelChangeNow', 'ForceWantedLevelNow'],
+    'SetPoliceIgnorePlayer': ['SetPoliceIgnorePlayer', 'SetPlayerPoliceIgnore'],
+    'SetMaxWantedLevel': ['SetMaxWantedLevel', 'SetPlayerMaxWantedLevel'],
+    'AddDoorToSystem': ['AddDoorToSystem'],
+    'DoorSystemSetDoorState': ['DoorSystemSetDoorState', 'SetDoorState'],
+    'SetStateOfClosestDoorOfType': ['SetStateOfClosestDoorOfType'],
+    'SetNewWaypoint': ['SetNewWaypoint'],
+    'SetBlipRoute': ['SetBlipRoute'],
+}
+NATIVE_SYMBOL = re.compile(r'^[A-Za-z0-9_]+_commands::(?:Command)?([A-Za-z0-9_]+)\(')
+NATIVE_TOKENS = ('door', 'wanted', 'waypoint', 'bliproute', 'policeignore', 'dispatchcop')
+
+def discover_natives(names, known):
+    index = {}
+    for symbol in names:
+        m = NATIVE_SYMBOL.match(symbol)
+        if m: index.setdefault(m.group(1).lower(), symbol)
+    found = []
+    for canonical, options in NATIVE_WISH.items():
+        if canonical in known: continue
+        for option in options:
+            symbol = index.get(option.lower())
+            if symbol:
+                found.append((canonical, symbol)); break
+    return found
+
+def candidate_natives(names):
+    return sorted(s for s in names if NATIVE_SYMBOL.match(s) and any(t in s.lower() for t in NATIVE_TOKENS))[:200]
+
 def prepare(wasm, commands):
     names, globals_, original_exports = {}, {}, {}
     parts = list(sections(wasm))
@@ -67,6 +100,18 @@ def prepare(wasm, commands):
             for _ in range(r.uint()):
                 name = r.string(); export_kind = r.data[r.pos]; r.pos += 1
                 original_exports[name] = (export_kind, r.uint())
+    extra, candidates = [], []
+    try:
+        extra = discover_natives(names, {n for n, _ in commands})
+        candidates = candidate_natives(names)
+        for canonical, symbol in extra: print(f'[native-discovery] FOUND {canonical} -> {symbol}')
+        for canonical in NATIVE_WISH:
+            if canonical not in {n for n, _ in extra} and canonical not in {n for n, _ in commands}: print(f'[native-discovery] MISSING {canonical}')
+        for symbol in candidates: print(f'[native-discovery] candidate {symbol}')
+    except Exception as error:
+        extra = []
+        print(f'[native-discovery] skipped: {error}')
+    commands = list(commands) + extra
     hooks = {key: names[name] for key, name in HOOKS.items()}
     tls = globals_['__tls_base']  # Fail rather than guessing the TLS global.
     wanted = {f'mp:{name}': (0, names[symbol]) for name, symbol in commands if symbol in names}
@@ -87,7 +132,7 @@ def prepare(wasm, commands):
         else: output.extend(raw)
     # Every section except exports must remain byte-for-byte identical.
     assert [(k, b) for k, b, _ in sections(output) if k != 7] == [(k, b) for k, b, _ in parts if k != 7]
-    return bytes(output), {'hooks': hooks, 'exports': list(wanted), 'missing': [n for n, s in commands if s not in names]}
+    return bytes(output), {'hooks': hooks, 'exports': list(wanted), 'missing': [n for n, s in commands if s not in names], 'discovered': [n for n, _ in extra], 'candidates': candidates}
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(); p.add_argument('engine', type=Path); p.add_argument('--out', type=Path, required=True)

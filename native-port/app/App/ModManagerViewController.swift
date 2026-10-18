@@ -394,8 +394,7 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
             showAlert(L10n.text("Chưa vào game"), L10n.text("Vui lòng khởi động và vào game trước khi gọi phương tiện."))
             return
         }
-        var cleanModel = model.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if cleanModel == "mbs1k" { cleanModel = "mbslk" }
+        let cleanModel = ModRuntime.resolveModel(model, mods: Self.modsDirectory)
         guard !cleanModel.isEmpty else { return }
         if ModRuntime.needsRestart(for: cleanModel, mods: Self.modsDirectory) {
             showAlert("Cần mở lại game", "Mod '\(cleanModel)' được cài sau khi game khởi động nên engine chưa nạp. Hãy thoát hẳn app rồi mở lại và vào game.")
@@ -411,7 +410,9 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
                 if ok == true {
                     self.showAlert(L10n.text("Đã gọi xe"), "Đã tạo xe '\(shown)' trước mặt nhân vật.")
                 } else if ok == false {
-                    self.showAlert("Không gọi được xe", "Engine không tạo được '\(shown)'.\n" + ModSpawn.failureHint)
+                    let similar = ModRuntime.similarModels(to: shown, mods: Self.modsDirectory).filter { $0 != shown }
+                    let tip = similar.isEmpty ? "" : "\nCó thể bạn muốn gọi: " + similar.joined(separator: ", ")
+                    self.showAlert("Không gọi được xe", "Engine không tạo được '\(shown)'.\n" + ModSpawn.failureHint + tip)
                 } else {
                     self.showAlert("Xe vẫn đang tải", "'\(shown)' nạp lâu bất thường. Nếu xe không xuất hiện, \(ModSpawn.failureHint)")
                 }

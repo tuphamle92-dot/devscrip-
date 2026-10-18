@@ -917,19 +917,24 @@ static inline uint32_t pg_joaat(const char *key) {
 }
 
 static _Atomic int pg_spawn_status = 0; // 0 idle, 1 loading/spawning, 2 success, -1 error
+static _Atomic int pg_spawn_reason = 0; // with status -1: 1 model never loaded, 2 no player ped, 3 engine refused to create it
+static int pg_spawn_kind = 0;           // 0 vehicle, 1 ped (character)
 static char pg_spawn_model_name[64];
 static uint32_t pg_spawn_model_hash = 0;
 static int pg_spawn_frames = 0;
 static pthread_mutex_t pg_spawn_lock = PTHREAD_MUTEX_INITIALIZER;
 
-bool PGSpawnVehicle(const char *modelName) {
-  if (!modelName || !*modelName) return false;
-  pthread_mutex_lock(&pg_spawn_lock);
-  if (atomic_load(&pg_spawn_status) == 1) {
-    pthread_mutex_unlock(&pg_spawn_lock);
-    return false;
-  }
+// Starts a spawn request. A request that is still waiting for its model is REPLACED by the new
+// one. Before, a mod model that never streamed in kept the spawner locked until the ~30 s
+// timeout, and every other spawn attempt was refused with "system busy".
+static bool pg_spawn_request(const char *modelName, int kind) {
+  if (!modelName) return false;
   while (*modelName == ' ' || *modelName == '\t') modelName++;
+  if (!*modelName) return false;
+  pthread_mutex_lock(&pg_spawn_lock);
+  bool replaced = atomic_load(&pg_spawn_status) == 1;
+  char previous[64];
+  snprintf(previous, sizeof previous, "%s", pg_spawn_model_name);
   strncpy(pg_spawn_model_name, modelName, sizeof(pg_spawn_model_name) - 1);
   pg_spawn_model_name[sizeof(pg_spawn_model_name) - 1] = '\0';
   int len = (int)strlen(pg_spawn_model_name);
@@ -944,23 +949,47 @@ bool PGSpawnVehicle(const char *modelName) {
   } else {
     pg_spawn_model_hash = pg_joaat(pg_spawn_model_name);
   }
+  pg_spawn_kind = kind;
   pg_spawn_frames = 0;
+  atomic_store(&pg_spawn_reason, 0);
   atomic_store(&pg_spawn_status, 1);
   pthread_mutex_unlock(&pg_spawn_lock);
-  char msg[128];
-  snprintf(msg, sizeof msg, "Spawn vehicle requested: %s (hash 0x%08X / %u)", pg_spawn_model_name, pg_spawn_model_hash, pg_spawn_model_hash);
+  char msg[192];
+  if (replaced) {
+    snprintf(msg, sizeof msg, "Spawn: pending request for %s dropped, replaced by %s", previous, pg_spawn_model_name);
+    pg_log(msg);
+  }
+  snprintf(msg, sizeof msg, "Spawn %s requested: %s (hash 0x%08X / %u)", kind ? "ped" : "vehicle", pg_spawn_model_name, pg_spawn_model_hash, pg_spawn_model_hash);
   pg_log(msg);
   return true;
+}
+
+bool PGSpawnVehicle(const char *modelName) {
+  return pg_spawn_request(modelName, 0);
+}
+
+bool PGSpawnPed(const char *modelName) {
+  return pg_spawn_request(modelName, 1);
 }
 
 int PGSpawnVehicleStatus(void) {
   return atomic_load(&pg_spawn_status);
 }
 
+int PGSpawnVehicleReason(void) {
+  return atomic_load(&pg_spawn_reason);
+}
+
 static void pg_process_vehicle_spawn(w2c_game *instance) {
   if (atomic_load(&pg_spawn_status) != 1) return;
   pthread_mutex_lock(&pg_spawn_lock);
+  if (atomic_load(&pg_spawn_status) != 1) {
+    pthread_mutex_unlock(&pg_spawn_lock);
+    return;
+  }
   uint32_t model = pg_spawn_model_hash;
+  const bool isPed = pg_spawn_kind == 1;
+  const char *what = isPed ? "ped" : "vehicle";
   pg_spawn_frames++;
   uint64_t previous = pg_test_enter_script(instance);
   MugoatValue reqArgs[1] = { mg_u32(model) };
@@ -968,11 +997,16 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
   MugoatValue loadedArgs[1] = { mg_u32(model) };
   if (!mg_call_u32(instance, "mp:HasModelLoaded", loadedArgs, 1)) {
     pg_test_leave_script(instance, previous);
-    // Allow up to 1800 frames (~30s at 60fps) for heavy/high-poly mod vehicles to stream into memory
-    if (pg_spawn_frames > 1800) {
-      char msg[128];
-      snprintf(msg, sizeof msg, "Spawn vehicle timed out loading %s (0x%08X)", pg_spawn_model_name, model);
+    char msg[192];
+    if (pg_spawn_frames == 300 || pg_spawn_frames == 900) {
+      snprintf(msg, sizeof msg, "Spawn %s: model %s (0x%08X) still not loaded after %d frames", what, pg_spawn_model_name, model, pg_spawn_frames);
       pg_log(msg);
+    }
+    // Allow up to 1800 frames (~30s at 60fps) for heavy/high-poly mod models to stream into memory
+    if (pg_spawn_frames > 1800) {
+      snprintf(msg, sizeof msg, "Spawn %s timed out: model %s (0x%08X) never loaded. The engine does not know this model (DLC not registered / wrong name) or its data could not be read.", what, pg_spawn_model_name, model);
+      pg_log(msg);
+      atomic_store(&pg_spawn_reason, 1);
       atomic_store(&pg_spawn_status, -1);
     }
     pthread_mutex_unlock(&pg_spawn_lock);
@@ -981,7 +1015,8 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
   uint32_t ped = mg_call_u32(instance, "mp:PlayerPedId", NULL, 0);
   if (!ped) {
     pg_test_leave_script(instance, previous);
-    pg_log("Spawn vehicle: player ped not found");
+    pg_log("Spawn: player ped not found");
+    atomic_store(&pg_spawn_reason, 2);
     atomic_store(&pg_spawn_status, -1);
     pthread_mutex_unlock(&pg_spawn_lock);
     return;
@@ -994,6 +1029,36 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
   MugoatValue headArgs[1] = { mg_u32(ped) };
   float heading = mg_call_f32(instance, "mp:GetEntityHeading", headArgs, 1);
   float rad = heading * 0.0174532925f;
+
+  if (isPed) {
+    // Character mod: the engine has no SetPlayerModel command, so the character is created as a
+    // ped standing 2.5 m in front of the player.
+    uint64_t pedVector = w2c_game_f100(instance, 32);
+    float *pv = pg_pointer(&env, pedVector, 24);
+    pv[0] = px - sinf(rad) * 2.5f; pv[1] = 0; pv[2] = py + cosf(rad) * 2.5f; pv[3] = 0; pv[4] = pz; pv[5] = 0;
+    MugoatValue pedArgs[6] = { mg_u32(4), mg_u32(model), mg_u64(pedVector), mg_f32(heading), mg_u32(0), mg_u32(0) };
+    uint32_t newPed = mg_call_u32(instance, "mp:CreatePed", pedArgs, 6);
+    char msg[192];
+    if (newPed) {
+      MugoatValue variationArgs[1] = { mg_u32(newPed) };
+      mg_call_void(instance, "mp:SetPedDefaultComponentVariation", variationArgs, 1);
+      // Mission entity so the ambient population manager does not clean the ped up.
+      MugoatValue missionArgs[3] = { mg_u32(newPed), mg_u32(1), mg_u32(1) };
+      mg_call_void(instance, "mp:SetEntityAsMissionEntity", missionArgs, 3);
+      snprintf(msg, sizeof msg, "Spawned ped %s (0x%08X) id %u at %.1f, %.1f, %.1f", pg_spawn_model_name, model, newPed, pv[0], pv[2], pv[4]);
+      pg_log(msg);
+      atomic_store(&pg_spawn_status, 2);
+    } else {
+      snprintf(msg, sizeof msg, "Failed to spawn ped %s (0x%08X): CreatePed returned 0", pg_spawn_model_name, model);
+      pg_log(msg);
+      atomic_store(&pg_spawn_reason, 3);
+      atomic_store(&pg_spawn_status, -1);
+    }
+    pg_test_leave_script(instance, previous);
+    pthread_mutex_unlock(&pg_spawn_lock);
+    return;
+  }
+
   // Place 4.5m forward and slightly elevated (+0.5m) so vehicle doesn't clip into player or ground
   float vx = px - sinf(rad) * 4.5f;
   float vy = py + cosf(rad) * 4.5f;
@@ -1034,9 +1099,10 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
     pg_log(msg);
     atomic_store(&pg_spawn_status, 2);
   } else {
-    char msg[128];
-    snprintf(msg, sizeof msg, "Failed to spawn vehicle %s (0x%08X)", pg_spawn_model_name, model);
+    char msg[160];
+    snprintf(msg, sizeof msg, "Failed to spawn vehicle %s (0x%08X): CreateVehicle returned 0", pg_spawn_model_name, model);
     pg_log(msg);
+    atomic_store(&pg_spawn_reason, 3);
     atomic_store(&pg_spawn_status, -1);
   }
   pg_test_leave_script(instance, previous);

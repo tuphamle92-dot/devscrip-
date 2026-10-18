@@ -1140,10 +1140,27 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             showCheatToast(L10n.text("Cần vào game trước khi triệu hồi xe"))
             return
         }
+        if ModRuntime.needsRestart(for: clean, mods: ModManagerViewController.modsDirectory) {
+            showCheatToast("Mod mới cài: thoát hẳn app rồi mở lại để nạp")
+            appendLog("Vehicle spawn blocked: '\(clean)' belongs to a mod installed after the engine started; relaunch the app.")
+            return
+        }
         let started = clean.withCString { PGSpawnVehicle($0) }
         if started {
             showCheatToast(String(format: L10n.text("Đang triệu hồi: %@"), clean))
             appendLog("Vehicle spawn requested: \(clean)")
+            let requested = clean
+            ModSpawn.watch { [weak self] ok in
+                guard let self = self else { return }
+                if ok == true {
+                    self.showCheatToast("Đã gọi xe: \(requested)")
+                } else if ok == false {
+                    self.showCheatToast("Không gọi được xe: \(requested)")
+                    self.appendLog("Vehicle spawn FAILED for '\(requested)'. \(ModSpawn.failureHint)")
+                } else {
+                    self.appendLog("Vehicle spawn still loading after 75s for '\(requested)'.")
+                }
+            }
         } else {
             showCheatToast(L10n.text("Hệ thống đang bận triệu hồi xe khác!"))
         }

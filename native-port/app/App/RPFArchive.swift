@@ -121,6 +121,8 @@ struct ModPack {
     /// Every model the menus may offer: add-on vehicles (vehicles.meta) plus peds.
     let models: [String]
     let vehicleModels: [String]
+    /// model -> vehicle type label from vehicles.meta ("Ô tô", "Mô tô", "Trực thăng"...). Missing when unreadable.
+    let vehicleKinds: [String: String]
     let pedModels: [String]
     /// Non-fatal findings. A pack with warnings still loads, but may misbehave in game.
     let warnings: [String]
@@ -199,6 +201,7 @@ struct ModPack {
 
         // Vehicles and handling.
         var vehicles = Set<String>()
+        var kinds: [String: String] = [:]
         var handlingFiles = 0
         var vehicleMetaFound = false
         for entry in archive.entries where Self.isVehiclesMeta(entry.path) {
@@ -207,10 +210,14 @@ struct ModPack {
                 warnings.append("Không đọc được \(entry.path) (nhị phân/mã hóa/quá lớn).")
                 continue
             }
-            for raw in xml.values["modelName"] ?? [] {
+            let rawModels = xml.values["modelName"] ?? []
+            let rawTypes = (xml.values["type"] ?? []).filter { $0.uppercased().hasPrefix("VEHICLE_TYPE_") }
+            for (index, raw) in rawModels.enumerated() {
                 let model = raw.lowercased()
-                if Self.validName(model) { vehicles.insert(model) }
-                else { warnings.append("Bỏ qua tên model không hợp lệ: \(raw)") }
+                if Self.validName(model) {
+                    vehicles.insert(model)
+                    if rawTypes.count == rawModels.count { kinds[model] = ModFiles.vehicleKindLabel(rawTypes[index]) }
+                } else { warnings.append("Bỏ qua tên model không hợp lệ: \(raw)") }
             }
         }
         for entry in archive.entries where Self.fileName(entry.path).hasSuffix("handling.meta") {
@@ -263,6 +270,7 @@ struct ModPack {
         self.url = url
         self.archive = archive
         self.vehicleModels = vehicles.union(fromResources).sorted()
+        self.vehicleKinds = kinds
         self.pedModels = peds.sorted()
         self.models = all.sorted()
         self.warnings = warnings
@@ -271,7 +279,13 @@ struct ModPack {
     /// Human-readable summary for the mod manager.
     var report: String {
         var lines = ["Gói DLC: dlc_\(name)"]
-        if !vehicleModels.isEmpty { lines.append("Xe (\(vehicleModels.count)): " + vehicleModels.joined(separator: ", ")) }
+        if !vehicleModels.isEmpty {
+            var shown: [String] = []
+            for model in vehicleModels {
+                if let kind = vehicleKinds[model] { shown.append("\(model) (\(kind))") } else { shown.append(model) }
+            }
+            lines.append("Xe (\(vehicleModels.count)): " + shown.joined(separator: ", "))
+        }
         if !pedModels.isEmpty { lines.append("Nhân vật (\(pedModels.count)): " + pedModels.joined(separator: ", ")) }
         if warnings.isEmpty { lines.append("Không phát hiện vấn đề trong gói.") }
         else { lines.append(contentsOf: warnings.map { "⚠︎ " + $0 }) }

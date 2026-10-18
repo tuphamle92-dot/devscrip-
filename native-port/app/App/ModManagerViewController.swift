@@ -82,7 +82,10 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         switch section {
         case 0:
-            return L10n.text("Chép tệp mod (.rpf, .meta, .yft, .ytd) vào Tệp › Trên iPhone › Mugoat › mods. Với tệp nén, bấm Nhập Mod để giải nén. Tệp hướng dẫn .txt không được tính là mod.")
+            return L10n.text("Nhập gói DLC add-on (dlc.rpf, hoặc .zip/.rar chứa dlc.rpf, tối đa 100 MB mỗi gói) bằng Nhập Mod. Không chép tay file rpf vào thư mục mods. Sau khi nhập hoặc đổi mod, thoát hẳn app và mở lại. Bấm ⓘ ở tệp mod để xem báo cáo.")
+        case 1:
+            guard !dlcCatalog.problems.isEmpty else { return nil }
+            return "⚠︎ " + dlcCatalog.problems.joined(separator: "\n⚠︎ ")
         case 2:
             return L10n.text("Bấm vào phương tiện để triệu hồi ngay trước mặt nhân vật. Có thể nhập tên model bất kỳ từ bản mod hoặc GTA V gốc.")
         default: return nil
@@ -127,7 +130,11 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
                 cell.textLabel?.text = mod.name
                 let sizeStr = ByteCountFormatter.string(fromByteCount: mod.size, countStyle: .file)
                 let dateStr = DateFormatter.localizedString(from: mod.modified, dateStyle: .short, timeStyle: .short)
-                cell.detailTextLabel?.text = "\(sizeStr) · \(dateStr) · \(mod.isEnabled ? L10n.text("Đang bật") : L10n.text("Đã tắt"))"
+                var detail = "\(sizeStr) · \(dateStr) · \(mod.isEnabled ? L10n.text("Đang bật") : L10n.text("Đã tắt"))"
+                if mod.isEnabled, let pack = installedPack(for: mod) {
+                    detail += "\ndlc_\(pack.name) · \(pack.models.count) model" + (pack.warnings.isEmpty ? "" : " · ⚠︎")
+                }
+                cell.detailTextLabel?.text = detail
                 cell.imageView?.image = UIImage(systemName: mod.isEnabled ? "checkmark.circle.fill" : "xmark.circle")
                 cell.imageView?.tintColor = mod.isEnabled ? Theme.accent : .systemGray
                 cell.accessoryType = .detailButton
@@ -209,60 +216,95 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
 
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         let destDir = Self.modsDirectory
-        var extractedCount = 0
-        var copiedCount = 0
-        var rejected: [String] = []
+        let spinner = UIActivityIndicatorView(style: .medium)
+        spinner.startAnimating()
+        navigationItem.titleView = spinner
+        view.isUserInteractionEnabled = false
 
-        for url in urls {
-            let ext = url.pathExtension.lowercased()
-            guard ModFiles.importExtensions.contains(ext),
-                  (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else {
-                rejected.append(url.lastPathComponent)
-                continue
-            }
-            if ModFiles.archiveExtensions.contains(ext) {
-                let count = gi_extract_archive(url.path, destDir.path)
-                if count > 0 {
-                    extractedCount += Int(count)
-                } else {
-                    rejected.append(url.lastPathComponent)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            var report = ModRuntime.ImportReport()
+            for url in urls {
+                let name = url.lastPathComponent
+                let ext = url.pathExtension.lowercased()
+                guard ModFiles.importExtensions.contains(ext),
+                      (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else {
+                    report.problems.append("\(name): định dạng không hỗ trợ.")
+                    continue
                 }
-            } else if ext == "rpf" {
-                do {
-                    _ = try ModRuntime.importPack(url, into: destDir)
-                    copiedCount += 1
-                } catch {
-                    let target = destDir.appendingPathComponent(url.lastPathComponent)
-                    try? fileManager.removeItem(at: target)
-                    if (try? fileManager.copyItem(at: url, to: target)) != nil {
-                        copiedCount += 1
-                    } else {
-                        rejected.append("\(url.lastPathComponent): \(error.localizedDescription)")
+                if ModFiles.archiveExtensions.contains(ext) {
+                    let part = ModRuntime.installArchive(url, into: destDir)
+                    report.installed += part.installed
+                    report.problems += part.problems
+                    report.looseFiles += part.looseFiles
+                } else if ext == "rpf" {
+                    do {
+                        report.installed.append(try ModRuntime.importPack(url, into: destDir))
+                    } catch {
+                        report.problems.append("\(name): \(error.localizedDescription)")
                     }
-                }
-            } else {
-                let target = destDir.appendingPathComponent(url.lastPathComponent)
-                try? fileManager.removeItem(at: target)
-                if (try? fileManager.copyItem(at: url, to: target)) != nil {
-                    copiedCount += 1
                 } else {
-                    rejected.append(url.lastPathComponent)
+                    report.looseFiles += 1
                 }
             }
+            let finished = report
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.navigationItem.titleView = nil
+                self.view.isUserInteractionEnabled = true
+                self.scanMods()
+                self.showImportResult(finished)
+            }
         }
-        scanMods()
-        var messages: [String] = []
-        if extractedCount > 0 {
-            messages.append(String(format: L10n.text("Đã giải nén %d tệp vào thư mục mods. Tệp hướng dẫn không được tính là mod."), extractedCount))
+    }
+
+    private func showImportResult(_ report: ModRuntime.ImportReport) {
+        var lines: [String] = []
+        for pack in report.installed {
+            var summary = "✅ \(pack.name): \(pack.vehicleModels.count) xe"
+            if !pack.pedModels.isEmpty { summary += ", \(pack.pedModels.count) nhân vật" }
+            lines.append(summary)
+            let preview = pack.models.prefix(8).joined(separator: ", ")
+            if !preview.isEmpty { lines.append("   " + preview + (pack.models.count > 8 ? "…" : "")) }
+            for warning in pack.warnings { lines.append("   ⚠︎ " + warning) }
         }
-        if copiedCount > 0 {
-            messages.append(String(format: L10n.text("Đã thêm %d tệp mod."), copiedCount))
+        if report.looseFiles > 0 {
+            lines.append("ℹ︎ \(report.looseFiles) tệp rời (.meta/.yft/.ytd…) không được nạp riêng lẻ; hãy dùng gói dlc.rpf.")
         }
-        if !rejected.isEmpty {
-            messages.append(L10n.text("Không thể nhập các tệp sau (định dạng không hỗ trợ hoặc không đọc/giải nén được):") + "\n" + rejected.joined(separator: "\n"))
+        for problem in report.problems { lines.append("❌ " + problem) }
+        if !report.installed.isEmpty {
+            lines.append("")
+            lines.append(engineRunning
+                ? "Game đang chạy: hãy thoát hẳn app rồi mở lại để engine nạp mod mới."
+                : "Mod sẽ được nạp khi bạn bấm Play.")
         }
-        guard !messages.isEmpty else { return }
-        showAlert(L10n.text("Kết quả nhập Mod"), messages.joined(separator: "\n\n"))
+        guard !lines.isEmpty else { return }
+        showAlert(report.installed.isEmpty ? "Không nhập được mod" : "Kết quả nhập Mod", lines.joined(separator: "\n"))
+    }
+
+    override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        guard indexPath.section == 1, indexPath.row < modFiles.count else { return }
+        let mod = modFiles[indexPath.row]
+        showAlert(mod.name, describe(mod))
+    }
+
+    private func installedPack(for mod: ModFile) -> ModPack? {
+        let path = mod.url.standardizedFileURL.path
+        return dlcCatalog.packs.first { $0.url.standardizedFileURL.path == path }
+    }
+
+    private func describe(_ mod: ModFile) -> String {
+        if !mod.isEnabled { return "Mod đang tắt." }
+        if let pack = installedPack(for: mod) { return pack.report }
+        let prefix = mod.name + ": "
+        if let problem = dlcCatalog.problems.first(where: { $0.hasPrefix(prefix) }) {
+            return String(problem.dropFirst(prefix.count))
+        }
+        return "Tệp này không phải gói DLC add-on nên engine không nạp trực tiếp."
+    }
+
+    private func noteRestartIfNeeded() {
+        guard engineRunning else { return }
+        showAlert("Cần mở lại game", "Thay đổi mod chỉ có hiệu lực sau khi thoát hẳn app và mở lại.")
     }
 
     private func toggleMod(at index: Int) {
@@ -279,11 +321,13 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
             }
             try? self.fileManager.moveItem(at: mod.url, to: newURL)
             self.scanMods()
+            self.noteRestartIfNeeded()
         })
         sheet.addAction(UIAlertAction(title: L10n.text("Xóa vĩnh viễn"), style: .destructive) { [weak self] _ in
             guard let self else { return }
             try? self.fileManager.removeItem(at: mod.url)
             self.scanMods()
+            self.noteRestartIfNeeded()
         })
         sheet.addAction(UIAlertAction(title: L10n.text("Đóng"), style: .cancel))
         if let cell = tableView.cellForRow(at: IndexPath(row: index, section: 1)) {
@@ -316,9 +360,25 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
         var cleanModel = model.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if cleanModel == "mbs1k" { cleanModel = "mbslk" }
         guard !cleanModel.isEmpty else { return }
+        if ModRuntime.needsRestart(for: cleanModel, mods: Self.modsDirectory) {
+            showAlert("Cần mở lại game", "Mod '\(cleanModel)' được cài sau khi game khởi động nên engine chưa nạp. Hãy thoát hẳn app rồi mở lại và vào game.")
+            return
+        }
         let started = cleanModel.withCString { PGSpawnVehicle($0) }
         if started {
-            showAlert(L10n.text("Đã gọi xe"), String(format: L10n.text("Đang nạp model '%@'. Xe sẽ xuất hiện ngay trước mặt nhân vật!"), cleanModel))
+            let shown = cleanModel
+            navigationItem.prompt = "Đang nạp xe '\(shown)'…"
+            ModSpawn.watch { [weak self] ok in
+                guard let self = self else { return }
+                self.navigationItem.prompt = nil
+                if ok == true {
+                    self.showAlert(L10n.text("Đã gọi xe"), "Đã tạo xe '\(shown)' trước mặt nhân vật.")
+                } else if ok == false {
+                    self.showAlert("Không gọi được xe", "Engine không tạo được '\(shown)'.\n" + ModSpawn.failureHint)
+                } else {
+                    self.showAlert("Xe vẫn đang tải", "'\(shown)' nạp lâu bất thường. Nếu xe không xuất hiện, \(ModSpawn.failureHint)")
+                }
+            }
         } else {
             showAlert(L10n.text("Hệ thống bận"), L10n.text("Đang trong quá trình triệu hồi phương tiện khác. Vui lòng thử lại sau giây lát."))
         }

@@ -14,6 +14,16 @@ HOOKS = {
     'timewarp': 'CTimeWarper::SetTargetTimeWarp(TW_Dir)',
 }
 
+# Optional natives for the single-player money command. A symbol that the pinned engine does not
+# have is skipped (see `missing` in the metadata); the app then reports that money is unavailable.
+# Several spellings of the same signature are listed because only the real one will match.
+EXTRA_COMMANDS = [
+    ('StatSetInt', 'stats_commands::CommandStatSetInt(int, int, bool)'),
+    ('StatSetInt', 'stats_commands::CommandStatSetInt(int, int, int)'),
+    ('StatGetInt', 'stats_commands::CommandStatGetInt(int, int&, int)'),
+    ('StatGetInt', 'stats_commands::CommandStatGetInt(int, int&, bool)'),
+]
+
 def leb(value):
     result = bytearray()
     while True:
@@ -94,7 +104,7 @@ if __name__ == '__main__':
     args = p.parse_args()
     root = Path(__file__).resolve().parents[3]
     text = (root / 'src/mp.rs').read_text(encoding='utf-8').split('const ACTIVE_THREAD_TLS')[0]
-    commands = re.findall(r'\("([^"]+)", "([^"]+)"\)', text)
+    commands = re.findall(r'\("([^"]+)", "([^"]+)"\)', text) + EXTRA_COMMANDS
     output, metadata = prepare(args.engine.read_bytes(), commands)
     args.out.write_bytes(output)
     args.out.with_suffix('.json').write_text(json.dumps(metadata, indent=2))

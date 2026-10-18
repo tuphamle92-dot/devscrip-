@@ -1,42 +1,117 @@
 import Foundation
 
 enum ModRuntime {
+    /// Largest DLC pack the importer and catalog accept.
+    static let maxPackBytes: Int64 = 100 * 1024 * 1024
+
     struct Catalog {
         var packs: [ModPack] = []
         var problems: [String] = []
         var models: [String] { packs.flatMap(\.models).sorted() }
     }
-    static func catalog(_ directory: URL) -> Catalog {
-        var result = Catalog(), names = Set<String>(), models = Set<String>()
-        let files = ModFiles.scan(directory).filter { $0.isEnabled && $0.url.pathExtension.lowercased() == "rpf" }.sorted { $0.name < $1.name }
-        for file in files {
+
+    struct ImportReport {
+        var installed: [ModPack] = []
+        var problems: [String] = []
+        var looseFiles = 0
+    }
+
+    /// Models that were mounted when the engine last started. nil until the first boot.
+    /// A pack installed afterwards is on disk but the engine cannot see it until relaunch.
+    private(set) static var mountedModels: Set<String>? = nil
+
+    // MARK: - Parsed pack cache (a pack is only re-read when its file changes)
+
+    private static let cacheLock = NSLock()
+    private static var cache: [String: Result<ModPack, ModError>] = [:]
+
+    private static func load(_ file: ModFiles.Entry) -> Result<ModPack, ModError> {
+        let key = "\(file.url.path)|\(file.size)|\(file.modified.timeIntervalSince1970)"
+        cacheLock.lock()
+        let hit = cache[key]
+        cacheLock.unlock()
+        if let hit = hit { return hit }
+
+        var result: Result<ModPack, ModError>
+        if file.size > maxPackBytes {
+            result = .failure(ModError("Tệp lớn hơn giới hạn 100 MB (\(ByteCountFormatter.string(fromByteCount: file.size, countStyle: .file)))."))
+        } else {
             do {
-                let pack = try ModPack(url: file.url)
-                guard names.insert(pack.name).inserted else { throw ModError("Trùng gói DLC \(pack.name). Chỉ bật một phiên bản của gói này.") }
-                guard models.isDisjoint(with: pack.models) else { throw ModError("Trùng tên xe giữa các mod: \(pack.models.joined(separator: ", ")).") }
-                models.formUnion(pack.models); result.packs.append(pack)
+                result = .success(try ModPack(url: file.url))
             } catch let error as ModError {
-                if file.url.lastPathComponent.lowercased() == "dlc.rpf" || error.message.contains("Enhanced") || error.message.contains("Trùng") {
-                    result.problems.append(file.name + ": " + error.localizedDescription)
-                }
+                result = .failure(error)
             } catch {
-                if file.url.lastPathComponent.lowercased() == "dlc.rpf" {
-                    result.problems.append(file.name + ": " + error.localizedDescription)
+                result = .failure(ModError(error.localizedDescription))
+            }
+        }
+        cacheLock.lock()
+        if cache.count > 64 { cache.removeAll() }
+        cache[key] = result
+        cacheLock.unlock()
+        return result
+    }
+
+    static func catalog(_ directory: URL) -> Catalog {
+        var result = Catalog()
+        var names = Set<String>()
+        var models = Set<String>()
+        let files = ModFiles.scan(directory)
+            .filter { $0.isEnabled && $0.url.pathExtension.lowercased() == "rpf" }
+            .sorted { $0.name < $1.name }
+        for file in files {
+            switch load(file) {
+            case .success(let pack):
+                if !names.insert(pack.name).inserted {
+                    result.problems.append(file.name + ": Trùng gói DLC \(pack.name). Chỉ bật một phiên bản của gói này.")
+                    continue
                 }
+                let clash = models.intersection(pack.models)
+                if !clash.isEmpty {
+                    result.problems.append(file.name + ": Trùng tên xe với mod khác: " + clash.sorted().joined(separator: ", ") + ".")
+                    continue
+                }
+                models.formUnion(pack.models)
+                result.packs.append(pack)
+            case .failure(let error):
+                result.problems.append(file.name + ": " + error.message)
             }
         }
         return result
     }
 
+    /// True when `model` belongs to an installed pack that the running engine did not mount.
+    static func needsRestart(for model: String, mods: URL) -> Bool {
+        guard let mounted = mountedModels else { return false }
+        let wanted = model.lowercased()
+        if mounted.contains(wanted) { return false }
+        return catalog(mods).models.contains(wanted)
+    }
+
+    private static func decodeDLCList(_ data: Data) -> String? {
+        let encodings: [String.Encoding] = [.utf8, .utf16, .isoLatin1]
+        for encoding in encodings {
+            guard var text = String(data: data, encoding: encoding),
+                  text.range(of: "</Paths>", options: .caseInsensitive) != nil else { continue }
+            if text.hasPrefix("\u{FEFF}") { text.removeFirst() }
+            // We always write UTF-8, so the XML declaration must not claim otherwise.
+            if encoding != .utf8 {
+                text = text.replacingOccurrences(of: "utf-16", with: "utf-8", options: .caseInsensitive)
+            }
+            return text
+        }
+        return nil
+    }
+
     /// Builds a manifest overlay. Original game files and their sizes remain untouched.
+    /// Packs that fail validation are skipped and reported in `Catalog.problems`; they no
+    /// longer stop the healthy packs from loading.
     static func prepare(baseManifest: URL, mods: URL, runtime: URL, dlcList: Data) throws -> (URL, Catalog) {
-        let catalog = catalog(mods)
-        if !catalog.problems.isEmpty { throw ModError(catalog.problems.joined(separator: "\n")) }
-        guard !catalog.packs.isEmpty else { return (baseManifest, catalog) }
+        let loaded = Self.catalog(mods)
+        mountedModels = Set(loaded.models)
+        guard !loaded.packs.isEmpty else { return (baseManifest, loaded) }
         guard var manifest = try JSONSerialization.jsonObject(with: Data(contentsOf: baseManifest)) as? [String: Any],
               var files = manifest["files"] as? [[Any]],
-              var xml = String(data: dlcList, encoding: .utf8),
-              xml.range(of: "</Paths>", options: .caseInsensitive) != nil else { throw ModError("Thiếu danh sách DLC gốc hợp lệ.") }
+              var xml = decodeDLCList(dlcList) else { throw ModError("Thiếu danh sách DLC gốc hợp lệ.") }
         try FileManager.default.createDirectory(at: runtime, withIntermediateDirectories: true)
         var overrides: [String: String] = [:]
         func add(_ path: String, file: URL) throws {
@@ -47,7 +122,7 @@ enum ModRuntime {
                 files[index][1] = size; overrides[original] = file.path
             } else { files.append([path, size, 0]); overrides[path] = file.path }
         }
-        for pack in catalog.packs {
+        for pack in loaded.packs {
             let prefix = "x64/dlcPacks/" + pack.name + "/"
             try add(prefix + "dlc.rpf", file: pack.url)
             for name in ["setup2.xml", "content.xml"] {
@@ -70,12 +145,22 @@ enum ModRuntime {
         manifest["files"] = files; manifest["_mugoatOverrides"] = overrides
         let output = runtime.appendingPathComponent("manifest.json")
         try JSONSerialization.data(withJSONObject: manifest, options: [.sortedKeys]).write(to: output, options: .atomic)
-        return (output, catalog)
+        return (output, loaded)
     }
 
+    // MARK: - Import
+
+    /// Validates a dlc.rpf and installs it as mods/<pack>/dlc.rpf. A file that is not a valid
+    /// DLC pack is rejected with the reason; it is never copied into the mods folder.
+    @discardableResult
     static func importPack(_ source: URL, into mods: URL) throws -> ModPack {
-        let pack = try ModPack(url: source), directory = mods.appendingPathComponent(pack.name)
+        let size = Int64((try? source.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+        guard size <= maxPackBytes else {
+            throw ModError("Tệp \(ByteCountFormatter.string(fromByteCount: size, countStyle: .file)) vượt giới hạn 100 MB.")
+        }
+        let pack = try ModPack(url: source)
         let fm = FileManager.default
+        let directory = mods.appendingPathComponent(pack.name)
         try fm.createDirectory(at: directory, withIntermediateDirectories: true)
         let temporary = directory.appendingPathComponent("import-" + UUID().uuidString + ".rpf")
         let target = directory.appendingPathComponent("dlc.rpf")
@@ -83,6 +168,96 @@ enum ModRuntime {
         defer { try? fm.removeItem(at: temporary) }
         if fm.fileExists(atPath: target.path) { _ = try fm.replaceItemAt(target, withItemAt: temporary) }
         else { try fm.moveItem(at: temporary, to: target) }
-        return try ModPack(url: target)
+        let installed = try ModPack(url: target)
+        disableDuplicates(of: installed.name, keeping: target, in: mods)
+        return installed
     }
+
+    /// Older imports could leave a second copy of the same pack elsewhere in mods/, which makes
+    /// the catalog reject both. Extra copies are renamed to .disabled, never deleted.
+    private static func disableDuplicates(of name: String, keeping target: URL, in mods: URL) {
+        let keep = target.resolvingSymlinksInPath().standardizedFileURL.path
+        for entry in ModFiles.scan(mods) where entry.isEnabled && entry.url.pathExtension.lowercased() == "rpf" {
+            if entry.url.standardizedFileURL.path == keep { continue }
+            if case .success(let other) = load(entry), other.name == name {
+                try? FileManager.default.moveItem(at: entry.url, to: entry.url.appendingPathExtension("disabled"))
+            }
+        }
+    }
+
+    /// Unpacks an archive into a hidden staging folder, installs every dlc.rpf found in it and
+    /// reports exactly what happened. Nothing from a failed pack reaches the mods folder.
+    static func installArchive(_ archive: URL, into mods: URL) -> ImportReport {
+        var report = ImportReport()
+        let fm = FileManager.default
+        let label = archive.lastPathComponent
+        let staging = mods.appendingPathComponent(".import-" + UUID().uuidString)
+        defer { try? fm.removeItem(at: staging) }
+        do {
+            try fm.createDirectory(at: staging, withIntermediateDirectories: true)
+        } catch {
+            report.problems.append("\(label): không tạo được thư mục tạm (\(error.localizedDescription)).")
+            return report
+        }
+        let count = gi_extract_archive(archive.path, staging.path)
+        if count <= 0 {
+            report.problems.append("\(label): không giải nén được. Hỗ trợ .zip và .rar; .7z chưa được hỗ trợ (hãy nén lại thành .zip). Tệp cũng có thể bị lỗi hoặc đặt mật khẩu.")
+            return report
+        }
+        guard let walker = fm.enumerator(at: staging, includingPropertiesForKeys: [.isRegularFileKey], options: []) else {
+            report.problems.append("\(label): không đọc được nội dung đã giải nén.")
+            return report
+        }
+        let stagingPath = staging.resolvingSymlinksInPath().standardizedFileURL.path
+        var found: [URL] = []
+        for case let url as URL in walker {
+            guard (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else { continue }
+            found.append(url)
+        }
+        found.sort { $0.path < $1.path }
+        for url in found {
+            let ext = url.pathExtension.lowercased()
+            var relative = url.resolvingSymlinksInPath().standardizedFileURL.path
+            if relative.hasPrefix(stagingPath) { relative = String(relative.dropFirst(stagingPath.count)) }
+            while relative.hasPrefix("/") { relative.removeFirst() }
+            if ext == "rpf" {
+                do {
+                    report.installed.append(try importPack(url, into: mods))
+                } catch {
+                    report.problems.append("\(label) › \(relative): \(error.localizedDescription)")
+                }
+            } else if ModFiles.archiveExtensions.contains(ext) {
+                report.problems.append("\(label) › \(relative): tệp nén lồng nhau, hãy giải nén ra rồi nhập lại.")
+            } else if ModFiles.modExtensions.contains(ext) {
+                report.looseFiles += 1
+            }
+        }
+        if report.installed.isEmpty && report.problems.isEmpty {
+            report.problems.append("\(label): không có dlc.rpf. Engine chỉ nạp mod dạng gói DLC add-on; tệp .oiv hoặc mod thay thế tệp gốc chưa được hỗ trợ.")
+        }
+        return report
+    }
+}
+
+/// Follows the engine's vehicle spawn request so the UI can say what really happened.
+enum ModSpawn {
+    /// Calls `done` on the main queue: true = vehicle created, false = engine gave up, nil = still loading.
+    static func watch(timeout: TimeInterval = 75, _ done: @escaping (Bool?) -> Void) {
+        let deadline = Date().addingTimeInterval(timeout)
+        func poll() {
+            let status = PGSpawnVehicleStatus()
+            if status == 2 {
+                done(true)
+            } else if status == -1 {
+                done(false)
+            } else if Date() > deadline {
+                done(nil)
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { poll() }
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { poll() }
+    }
+
+    static let failureHint = "Nguyên nhân thường gặp: mod nhập sau khi game đã chạy (hãy thoát hẳn app rồi mở lại), gói thiếu model hoặc vehicles.meta, hoặc sai tên model. Bấm ⓘ ở tệp mod để xem báo cáo."
 }

@@ -1087,6 +1087,9 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             onSpawnVehicle: { [weak self] model in
                 self?.spawnVehicle(model)
             },
+            onSpawnPed: { [weak self] model in
+                self?.spawnPed(model)
+            },
             onOpenMods: { [weak self] in
                 self?.showModManager()
             }
@@ -1163,6 +1166,45 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             }
         } else {
             showCheatToast(L10n.text("Hệ thống đang bận triệu hồi xe khác!"))
+        }
+    }
+
+    /// Mod characters: the engine cannot swap the player's model, so the character is created
+    /// as a ped standing in front of the player.
+    private func spawnPed(_ model: String) {
+        guard !MugoatOnlineEnabled() && (bootedMode ?? GameSettings.shared.gameMode) != .sandbox else {
+            showCheatToast(L10n.text("Triệu hồi xe bị vô hiệu hóa trong Sandbox & Online"))
+            return
+        }
+        let clean = model.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !clean.isEmpty else { return }
+        guard engineStarted else {
+            showCheatToast(L10n.text("Cần vào game trước khi triệu hồi xe"))
+            return
+        }
+        if ModRuntime.needsRestart(for: clean, mods: ModManagerViewController.modsDirectory) {
+            showCheatToast("Mod mới cài: thoát hẳn app rồi mở lại để nạp")
+            appendLog("Ped spawn blocked: '\(clean)' belongs to a mod installed after the engine started; relaunch the app.")
+            return
+        }
+        let started = clean.withCString { PGSpawnPed($0) }
+        if started {
+            showCheatToast("Đang triệu hồi nhân vật: \(clean)")
+            appendLog("Ped spawn requested: \(clean)")
+            let requested = clean
+            ModSpawn.watch { [weak self] ok in
+                guard let self = self else { return }
+                if ok == true {
+                    self.showCheatToast("Đã gọi nhân vật: \(requested)")
+                } else if ok == false {
+                    self.showCheatToast("Không gọi được nhân vật: \(requested)")
+                    self.appendLog("Ped spawn FAILED for '\(requested)'. \(ModSpawn.failureHint)")
+                } else {
+                    self.appendLog("Ped spawn still loading after 75s for '\(requested)'.")
+                }
+            }
+        } else {
+            showCheatToast("Không gửi được yêu cầu triệu hồi nhân vật")
         }
     }
 

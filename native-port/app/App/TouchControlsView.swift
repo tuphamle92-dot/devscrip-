@@ -409,7 +409,7 @@ final class TouchControlsView: UIView {
     private func baseVisible() -> [ControlButton] {
         let online = MugoatOnlineEnabled()
         let isSandbox = (GameSettings.shared.gameMode == .sandbox)
-        let onlineButtons: [ControlButton] = online ? [speaker, mic, buyWeapon] : (isSandbox ? [] : [cheat])
+        let onlineButtons: [ControlButton] = online ? [speaker, mic, buyWeapon] : (isSandbox ? [buyWeapon] : [cheat, buyWeapon])
         let utility: [ControlButton] = context.driving ? [radio, lights, camera, phone, pause, settings] + onlineButtons : [camera, phone, pause, settings] + onlineButtons
         if context == .menu { return [pause, settings] + onlineButtons + [up, down, left, right, accept, back, tabLeft, tabRight] }
         if phoneDock { return [camera, phone, pause, settings] + onlineButtons + [up, down, left, right, accept, back] }

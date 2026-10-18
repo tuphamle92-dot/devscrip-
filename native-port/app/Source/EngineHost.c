@@ -889,10 +889,16 @@ static uint64_t pg_test_enter_script(w2c_game *instance) {
   uint64_t *active = pg_pointer(&env, *base + 3088, 8), previous = *active;
   uint64_t threads = *(uint64_t *)pg_pointer(&env, 15409704, 8);
   uint16_t count = *(uint16_t *)pg_pointer(&env, 15409712, 2);
+  uint64_t fallback = 0;
+  bool found = false;
   for (uint16_t i = 0; i < count; i++) {
     uint64_t thread = *(uint64_t *)pg_pointer(&env, threads + 8ull * i, 8);
-    if (thread && !strcmp(pg_string(&env, thread + 428), "main")) { *active = thread; break; }
+    if (thread && !fallback) fallback = thread;
+    if (thread && !strcmp(pg_string(&env, thread + 428), "main")) { *active = thread; found = true; break; }
   }
+  // No script called "main" (a mode that names it differently): borrow any running script
+  // instead of calling CreateVehicle / CreatePed with none, which made them return 0.
+  if (!found && !previous && fallback) *active = fallback;
   return previous;
 }
 static void pg_test_leave_script(w2c_game *instance, uint64_t previous) {
@@ -1124,6 +1130,112 @@ static void pg_process_vehicle_spawn(w2c_game *instance) {
   pthread_mutex_unlock(&pg_spawn_lock);
 }
 
+
+// ---- Surroundings (touch buttons that apply only near a vehicle / with a weapon) ---------------
+// Read on the engine thread through the same script commands the spawner uses, a few times a
+// second and only while the touch UI asks for it. Any failed command leaves its flag unset, and
+// the UI then shows every button as before.
+#define PG_SURR_MAX 24
+static _Atomic bool pg_surr_wanted;
+static _Atomic uint32_t pg_surr_distance_bits = 0x4e6e6b28u; // 1.0e9f
+static _Atomic uint32_t pg_surr_flags;      // 1 vehicle known, 2 weapon known, 4 has weapon, 8 gun armed
+static _Atomic uint64_t pg_surr_stamp_ms;   // when the last reading finished (0 = never)
+static uint64_t pg_surr_list, pg_surr_vector; // engine-heap scratch, allocated once
+static unsigned pg_surr_tick;
+
+void PGSetSurroundingsWanted(bool wanted) {
+  atomic_store(&pg_surr_wanted, wanted);
+}
+
+PGSurroundings PGReadSurroundings(void) {
+  PGSurroundings out;
+  memset(&out, 0, sizeof out);
+  out.vehicleDistance = 1.0e9f;
+  uint64_t stamp = atomic_load(&pg_surr_stamp_ms);
+  if (!stamp || timeMS(CLOCK_MONOTONIC) - (double)stamp > 1500.0) return out;
+  uint32_t flags = atomic_load(&pg_surr_flags);
+  uint32_t bits = atomic_load(&pg_surr_distance_bits);
+  memcpy(&out.vehicleDistance, &bits, 4);
+  out.valid = true;
+  out.vehicleKnown = (flags & 1) != 0;
+  out.weaponKnown = (flags & 2) != 0;
+  out.hasWeapon = (flags & 4) != 0;
+  out.gunArmed = (flags & 8) != 0;
+  return out;
+}
+
+static void pg_process_surroundings(w2c_game *instance) {
+  if (!atomic_load(&pg_surr_wanted)) return;
+  if ((++pg_surr_tick & 7u) != 0) return;              // about 7 readings a second at 60 FPS
+  if (atomic_load(&pg_spawn_status) == 1) return;      // a spawn request owns this frame
+  uint64_t previous = pg_test_enter_script(instance);
+  uint32_t ped = mg_call_u32(instance, "mp:PlayerPedId", NULL, 0);
+  if (!ped) {
+    pg_test_leave_script(instance, previous);
+    return;
+  }
+  if (!pg_surr_list || !pg_surr_vector) {
+    pg_surr_list = w2c_game_f100(instance, 16 + 8ull * PG_SURR_MAX);
+    pg_surr_vector = w2c_game_f100(instance, 32);
+  }
+  if (!pg_surr_list || !pg_surr_vector) {
+    pg_test_leave_script(instance, previous);
+    return;
+  }
+  uint32_t flags = 0;
+  float nearest = 1.0e9f;
+
+  // Own position, then the closest of the vehicles the game lists around the player.
+  MugoatValue meArgs[3] = { mg_u64(pg_surr_vector), mg_u32(ped), mg_u32(1) };
+  MugoatValue meResult = { 0 };
+  bool haveMe = mugoat_command_call((void *)instance, "mp:GetEntityCoords", meArgs, 3, &meResult);
+  float px = 0, py = 0, pz = 0;
+  if (haveMe) {
+    const float *me = pg_pointer(&env, pg_surr_vector, 24);
+    px = me[0]; py = me[2]; pz = me[4];
+  }
+  if (haveMe) {
+    *(uint64_t *)pg_pointer(&env, pg_surr_list, 8) = PG_SURR_MAX;
+    MugoatValue listArgs[2] = { mg_u32(ped), mg_u64(pg_surr_list) };
+    MugoatValue listResult = { 0 };
+    if (mugoat_command_call((void *)instance, "mp:GetNearbyVehicles", listArgs, 2, &listResult)) {
+      int32_t count = (int32_t)(uint32_t)listResult.bits;
+      if (count < 0) count = 0;
+      if (count > PG_SURR_MAX) count = PG_SURR_MAX;
+      for (int32_t k = 0; k < count; k++) {
+        uint32_t entity = *(const uint32_t *)pg_pointer(&env, pg_surr_list + 8 + 8ull * (uint64_t)k, 4);
+        if (!entity) continue;
+        MugoatValue vehArgs[3] = { mg_u64(pg_surr_vector), mg_u32(entity), mg_u32(1) };
+        MugoatValue vehResult = { 0 };
+        if (!mugoat_command_call((void *)instance, "mp:GetEntityCoords", vehArgs, 3, &vehResult)) continue;
+        const float *at = pg_pointer(&env, pg_surr_vector, 24);
+        float dx = at[0] - px, dy = at[2] - py, dz = at[4] - pz;
+        float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+        if (distance < nearest) nearest = distance;
+      }
+      flags |= 1;
+    }
+  }
+
+  // Weapon in hand: fists (or nothing) hide Aim; only a ranged weapon shows Reload and Cover.
+  MugoatValue pedArgs[1] = { mg_u32(ped) };
+  MugoatValue weaponResult = { 0 };
+  if (mugoat_command_call((void *)instance, "mp:GetSelectedPedWeapon", pedArgs, 1, &weaponResult)) {
+    uint32_t weapon = (uint32_t)weaponResult.bits;
+    flags |= 2;
+    if (weapon != 0 && weapon != 0xA2719263u) flags |= 4; // weapon_unarmed
+    MugoatValue armedArgs[2] = { mg_u32(ped), mg_u32(4) };
+    MugoatValue armedResult = { 0 };
+    if (mugoat_command_call((void *)instance, "mp:IsPedArmed", armedArgs, 2, &armedResult) && (uint32_t)armedResult.bits != 0) flags |= 8;
+  }
+  pg_test_leave_script(instance, previous);
+
+  uint32_t bits;
+  memcpy(&bits, &nearest, 4);
+  atomic_store(&pg_surr_distance_bits, bits);
+  atomic_store(&pg_surr_flags, flags);
+  atomic_store(&pg_surr_stamp_ms, (uint64_t)timeMS(CLOCK_MONOTONIC) + 1);
+}
 
 // ---- Single-player money --------------------------------------------------------------------
 // The story-mode wallet is the stat SP<n>_TOTAL_CASH (n: 0 Michael, 1 Franklin, 2 Trevor). It is
@@ -1516,6 +1628,7 @@ void pg_virtual_pad_apply(w2c_game *instance, uint64_t pad) {
   if (pad == 12840656) {
     pg_apply_targeting_mode(instance);
     pg_process_vehicle_spawn(instance);
+    pg_process_surroundings(instance);
     pg_process_money(instance);
     pg_process_vehicle_exit(instance);
     pg_process_force_skip_scene(instance);

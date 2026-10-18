@@ -1129,7 +1129,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     }
 
     private func spawnVehicle(_ model: String) {
-        guard !MugoatOnlineEnabled() && (bootedMode ?? GameSettings.shared.gameMode) != .sandbox else {
+        guard !MugoatOnlineEnabled() else {
             showCheatToast(L10n.text("Triệu hồi xe bị vô hiệu hóa trong Sandbox & Online"))
             return
         }
@@ -1169,7 +1169,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     /// Mod characters: the engine cannot swap the player's model, so the character is created
     /// as a ped standing in front of the player.
     private func spawnPed(_ model: String) {
-        guard !MugoatOnlineEnabled() && (bootedMode ?? GameSettings.shared.gameMode) != .sandbox else {
+        guard !MugoatOnlineEnabled() else {
             showCheatToast(L10n.text("Triệu hồi xe bị vô hiệu hóa trong Sandbox & Online"))
             return
         }
@@ -1337,6 +1337,8 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
                 if wanted.contains("help") { hints.helpShown = true; hints.helpContext = true }
             }
             touchControls.updateHints(hints)
+            PGSetSurroundingsWanted(touchControls.wantsSurroundings)
+            touchControls.updateSurroundings(PGReadSurroundings())
             let touch = touchControls.padState(elapsed: elapsed)
             touchControls.sendCameraMotion()
             if ProcessInfo.processInfo.arguments.contains("--trace-touch-controls") {
@@ -1346,6 +1348,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             state.merge(touch)
         } else {
             PGTouchCameraEnabled(false)
+            PGSetSurroundingsWanted(false)
         }
         #if targetEnvironment(simulator)
         var keys = PGPadState()

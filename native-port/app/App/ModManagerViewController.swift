@@ -1,13 +1,17 @@
 import UIKit
 import UniformTypeIdentifiers
 
-/// Dedicated Mod Manager screen: manage installed mods, import mod archives/files (.zip, .rpf, .meta, .asi),
-/// and spawn installed add-on/DLC vehicles and iconic GTA V vehicles directly into the game.
+/// Dedicated Mod Manager screen: manage installed mods, import mod archives/files of any type
+/// (.zip, .rpf, .ytd, .yft, .meta, .asi...), show the real type of every file, and spawn installed
+/// add-on/DLC vehicles and iconic GTA V vehicles directly into the game.
 final class ModManagerViewController: UITableViewController, UIDocumentPickerDelegate {
     private let engineRunning: Bool
     private let fileManager = FileManager.default
     private var modFiles: [ModFile] = []
     private var dlcCatalog: ModRuntime.Catalog = ModRuntime.Catalog()
+    /// model -> vehicle type label ("Ô tô", "Mô tô"...) and model -> DLC pack name, for installed packs.
+    private var vehicleKinds: [String: String] = [:]
+    private var packOfModel: [String: String] = [:]
 
     typealias ModFile = ModFiles.Entry
 
@@ -53,6 +57,16 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
     private func scanMods() {
         modFiles = ModFiles.scan(Self.modsDirectory)
         dlcCatalog = ModRuntime.catalog(Self.modsDirectory)
+        var kinds: [String: String] = [:]
+        var packs: [String: String] = [:]
+        for pack in dlcCatalog.packs {
+            for model in pack.vehicleModels {
+                kinds[model] = pack.vehicleKinds[model] ?? "Xe (chưa rõ loại)"
+                packs[model] = pack.name
+            }
+        }
+        vehicleKinds = kinds
+        packOfModel = packs
         tableView.reloadData()
         refreshControl?.endRefreshing()
     }
@@ -65,7 +79,7 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
         switch section {
         case 0: return 3 // Quản lý & Cài đặt
         case 1: return max(1, modFiles.count) // Tệp mod đã cài
-        case 2: return 1 + dlcCatalog.models.count + defaultVehicles.count // Gọi xe (Custom + Add-ons + Mặc định)
+        case 2: return 1 + dlcCatalog.vehicleModels.count + defaultVehicles.count // Gọi xe (Custom + Add-ons + Mặc định)
         default: return 0
         }
     }
@@ -83,6 +97,7 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
         switch section {
         case 0:
             return L10n.text("Nhập gói DLC add-on (dlc.rpf, hoặc .zip/.rar chứa dlc.rpf, tối đa 100 MB mỗi gói) bằng Nhập Mod. Không chép tay file rpf vào thư mục mods. Sau khi nhập hoặc đổi mod, thoát hẳn app và mở lại. Bấm ⓘ ở tệp mod để xem báo cáo.")
+                + "\n" + "Mọi loại tệp mod khác (.ytd, .yft, .meta, rpf mã hóa…) cũng được nhận và lưu kèm loại thật của tệp; engine chỉ nạp gói dlc.rpf hợp lệ."
         case 1:
             guard !dlcCatalog.problems.isEmpty else { return nil }
             return "⚠︎ " + dlcCatalog.problems.joined(separator: "\n⚠︎ ")
@@ -97,7 +112,7 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
         cell.backgroundColor = Theme.rowBackground
         cell.textLabel?.textColor = Theme.text
         cell.detailTextLabel?.textColor = Theme.secondaryText
-        cell.detailTextLabel?.numberOfLines = 2
+        cell.detailTextLabel?.numberOfLines = 3
 
         switch indexPath.section {
         case 0:
@@ -132,7 +147,14 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
                 let dateStr = DateFormatter.localizedString(from: mod.modified, dateStyle: .short, timeStyle: .short)
                 var detail = "\(sizeStr) · \(dateStr) · \(mod.isEnabled ? L10n.text("Đang bật") : L10n.text("Đã tắt"))"
                 if mod.isEnabled, let pack = installedPack(for: mod) {
-                    detail += "\ndlc_\(pack.name) · \(pack.models.count) model" + (pack.warnings.isEmpty ? "" : " · ⚠︎")
+                    detail += "\nGói DLC dlc_\(pack.name) · \(pack.vehicleModels.count) xe"
+                    let kinds = Set(pack.vehicleKinds.values)
+                    if !kinds.isEmpty { detail += " (" + kinds.sorted().joined(separator: ", ") + ")" }
+                    if !pack.pedModels.isEmpty { detail += " · \(pack.pedModels.count) nhân vật" }
+                    if !pack.warnings.isEmpty { detail += " · ⚠︎" }
+                } else {
+                    detail += "\n" + mod.info.title
+                    if !mod.info.detail.isEmpty { detail += " · " + mod.info.detail }
                 }
                 cell.detailTextLabel?.text = detail
                 cell.imageView?.image = UIImage(systemName: mod.isEnabled ? "checkmark.circle.fill" : "xmark.circle")
@@ -147,15 +169,17 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
                 cell.imageView?.image = UIImage(systemName: "magnifyingglass.circle.fill")
                 cell.imageView?.tintColor = Theme.accent
                 cell.accessoryType = .disclosureIndicator
-            } else if indexPath.row <= dlcCatalog.models.count {
-                let model = dlcCatalog.models[indexPath.row - 1]
+            } else if indexPath.row <= dlcCatalog.vehicleModels.count {
+                let model = dlcCatalog.vehicleModels[indexPath.row - 1]
+                let kind = vehicleKinds[model] ?? "Xe (chưa rõ loại)"
+                let pack = packOfModel[model].map { "dlc_" + $0 } ?? "DLC"
                 cell.textLabel?.text = "Xe Mod: \(model.uppercased())"
-                cell.detailTextLabel?.text = L10n.text("Phương tiện từ gói DLC Add-on đã cài. Bấm để triệu hồi ngay.")
-                cell.imageView?.image = UIImage(systemName: "star.fill")
+                cell.detailTextLabel?.text = "\(kind) · \(pack) · " + L10n.text("Bấm để triệu hồi")
+                cell.imageView?.image = UIImage(systemName: Self.icon(forKind: kind))
                 cell.imageView?.tintColor = .systemYellow
                 cell.accessoryType = .disclosureIndicator
             } else {
-                let index = indexPath.row - 1 - dlcCatalog.models.count
+                let index = indexPath.row - 1 - dlcCatalog.vehicleModels.count
                 if index < defaultVehicles.count {
                     let v = defaultVehicles[index]
                     cell.textLabel?.text = v.name
@@ -188,11 +212,11 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
         case 2:
             if indexPath.row == 0 {
                 promptCustomVehicleSpawn()
-            } else if indexPath.row <= dlcCatalog.models.count {
-                let model = dlcCatalog.models[indexPath.row - 1]
+            } else if indexPath.row <= dlcCatalog.vehicleModels.count {
+                let model = dlcCatalog.vehicleModels[indexPath.row - 1]
                 spawnVehicle(named: model)
             } else {
-                let index = indexPath.row - 1 - dlcCatalog.models.count
+                let index = indexPath.row - 1 - dlcCatalog.vehicleModels.count
                 if index < defaultVehicles.count {
                     spawnVehicle(named: defaultVehicles[index].model)
                 }
@@ -205,10 +229,8 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
     // MARK: - Mod File Actions
 
     private func pickModFile() {
-        let types = ModFiles.importExtensions.sorted().map {
-            UTType(filenameExtension: $0) ?? UTType(importedAs: "vn.iosvn.mugoat.mod.\($0)", conformingTo: .data)
-        }
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
+        // Any file type is accepted (.ytd, .yft, .meta, .rpf, archives...); notes and pictures are skipped on import.
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: true)
         picker.delegate = self
         picker.allowsMultipleSelection = true
         present(picker, animated: true)
@@ -226,24 +248,14 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
             for url in urls {
                 let name = url.lastPathComponent
                 let ext = url.pathExtension.lowercased()
-                guard ModFiles.importExtensions.contains(ext),
-                      (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else {
-                    report.problems.append("\(name): định dạng không hỗ trợ.")
+                guard (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else {
+                    report.problems.append("\(name): không đọc được (không phải tệp thường).")
                     continue
                 }
                 if ModFiles.archiveExtensions.contains(ext) {
-                    let part = ModRuntime.installArchive(url, into: destDir)
-                    report.installed += part.installed
-                    report.problems += part.problems
-                    report.looseFiles += part.looseFiles
-                } else if ext == "rpf" {
-                    do {
-                        report.installed.append(try ModRuntime.importPack(url, into: destDir))
-                    } catch {
-                        report.problems.append("\(name): \(error.localizedDescription)")
-                    }
+                    report.merge(ModRuntime.installArchive(url, into: destDir))
                 } else {
-                    report.looseFiles += 1
+                    report.merge(ModRuntime.importFile(url, into: destDir))
                 }
             }
             let finished = report
@@ -263,12 +275,18 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
             var summary = "✅ \(pack.name): \(pack.vehicleModels.count) xe"
             if !pack.pedModels.isEmpty { summary += ", \(pack.pedModels.count) nhân vật" }
             lines.append(summary)
-            let preview = pack.models.prefix(8).joined(separator: ", ")
-            if !preview.isEmpty { lines.append("   " + preview + (pack.models.count > 8 ? "…" : "")) }
+            var shown: [String] = []
+            for model in pack.vehicleModels.prefix(8) {
+                if let kind = pack.vehicleKinds[model] { shown.append("\(model) (\(kind))") } else { shown.append(model) }
+            }
+            if !shown.isEmpty { lines.append("   " + shown.joined(separator: ", ") + (pack.vehicleModels.count > 8 ? "…" : "")) }
+            if !pack.pedModels.isEmpty { lines.append("   Nhân vật: " + pack.pedModels.prefix(8).joined(separator: ", ")) }
             for warning in pack.warnings { lines.append("   ⚠︎ " + warning) }
         }
+        for item in report.stored.prefix(12) { lines.append("📥 " + item) }
+        if report.stored.count > 12 { lines.append("📥 … và \(report.stored.count - 12) tệp khác") }
         if report.looseFiles > 0 {
-            lines.append("ℹ︎ \(report.looseFiles) tệp rời (.meta/.yft/.ytd…) không được nạp riêng lẻ; hãy dùng gói dlc.rpf.")
+            lines.append("ℹ︎ \(report.looseFiles) tệp đã được nhận và lưu, loại của từng tệp hiện trong Danh sách Mod đã cài. Engine chỉ nạp mod đóng gói thành gói dlc.rpf hợp lệ; tệp rời (.ytd/.yft/.meta…) cần được gộp vào dlc.rpf mới lên game.")
         }
         for problem in report.problems { lines.append("❌ " + problem) }
         if !report.installed.isEmpty {
@@ -278,7 +296,8 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
                 : "Mod sẽ được nạp khi bạn bấm Play.")
         }
         guard !lines.isEmpty else { return }
-        showAlert(report.installed.isEmpty ? "Không nhập được mod" : "Kết quả nhập Mod", lines.joined(separator: "\n"))
+        let received = !report.installed.isEmpty || !report.stored.isEmpty
+        showAlert(received ? "Kết quả nhập Mod" : "Không nhập được mod", lines.joined(separator: "\n"))
     }
 
     override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
@@ -293,13 +312,31 @@ final class ModManagerViewController: UITableViewController, UIDocumentPickerDel
     }
 
     private func describe(_ mod: ModFile) -> String {
-        if !mod.isEnabled { return "Mod đang tắt." }
-        if let pack = installedPack(for: mod) { return pack.report }
-        let prefix = mod.name + ": "
-        if let problem = dlcCatalog.problems.first(where: { $0.hasPrefix(prefix) }) {
-            return String(problem.dropFirst(prefix.count))
+        var lines: [String] = []
+        if !mod.isEnabled {
+            lines.append("Mod đang tắt.")
+        } else if let pack = installedPack(for: mod) {
+            return pack.report
         }
-        return "Tệp này không phải gói DLC add-on nên engine không nạp trực tiếp."
+        lines.append("Loại: " + mod.info.title)
+        if !mod.info.detail.isEmpty { lines.append(mod.info.detail) }
+        let prefix = mod.name + ": "
+        if mod.isEnabled, let problem = dlcCatalog.problems.first(where: { $0.hasPrefix(prefix) }) {
+            lines.append("Chưa nạp vào game: " + String(problem.dropFirst(prefix.count)))
+        } else if mod.isEnabled {
+            lines.append("Đã lưu trong thư mục mods. Engine bản này chỉ nạp mod đóng gói thành gói DLC (dlc.rpf) hợp lệ; tệp rời như .ytd/.yft/.meta chưa tự lên game được.")
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    /// SF Symbol for a vehicle type label produced by ModFiles.vehicleKindLabel.
+    private static func icon(forKind kind: String) -> String {
+        switch kind {
+        case "Mô tô", "Xe đạp", "Xe quad": return "bicycle"
+        case "Trực thăng", "Máy bay", "Trực thăng gyro", "Khí cầu": return "airplane"
+        case "Tàu thuyền", "Tàu ngầm": return "ferry.fill"
+        default: return "car.fill"
+        }
     }
 
     private func noteRestartIfNeeded() {

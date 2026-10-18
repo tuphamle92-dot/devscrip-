@@ -223,11 +223,8 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(lookForGameFiles), name: UIApplication.didBecomeActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(installChanged), name: .gameInstallChanged, object: nil)
         displayLink = CADisplayLink(target: self, selector: #selector(pollController))
-        // ProMotion screens only run above 60 Hz when the app asks: L10n.text("Unlocked") asks for up to 120.
-        if GameSettings.shared.frameRateCap == 0 {
-            let top = Float(UIScreen.main.maximumFramesPerSecond)
-            displayLink?.preferredFrameRateRange = CAFrameRateRange(minimum: min(60, top), maximum: top, preferred: top)
-        }
+        // Locked to 60 Hz: asking for exactly 60 keeps ProMotion screens from running at 120 Hz.
+        displayLink?.preferredFrameRateRange = CAFrameRateRange(minimum: 60, maximum: 60, preferred: 60)
         displayLink?.add(to: .main, forMode: .common)
         NotificationCenter.default.addObserver(self, selector: #selector(handleAudioEngineConfigurationChange), name: .AVAudioEngineConfigurationChange, object: audioEngine)
         NotificationCenter.default.addObserver(self, selector: #selector(handleAudioRouteChange), name: AVAudioSession.routeChangeNotification, object: nil)
@@ -1136,8 +1133,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             showCheatToast(L10n.text("Triệu hồi xe bị vô hiệu hóa trong Sandbox & Online"))
             return
         }
-        var clean = model.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if clean == "mbs1k" { clean = "mbslk" }
+        let clean = ModRuntime.resolveModel(model, mods: ModManagerViewController.modsDirectory)
         guard !clean.isEmpty else { return }
         guard engineStarted else {
             showCheatToast(L10n.text("Cần vào game trước khi triệu hồi xe"))
@@ -1158,7 +1154,8 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
                 if ok == true {
                     self.showCheatToast("Đã gọi xe: \(requested)")
                 } else if ok == false {
-                    self.showCheatToast("Không gọi được xe: \(requested)")
+                    let similar = ModRuntime.similarModels(to: requested, mods: ModManagerViewController.modsDirectory).filter { $0 != requested }
+                    self.showCheatToast("Không gọi được xe: \(requested)" + (similar.isEmpty ? "" : " · thử: " + similar.joined(separator: ", ")))
                     self.appendLog("Vehicle spawn FAILED for '\(requested)'. \(ModSpawn.failureHint)")
                 } else {
                     self.appendLog("Vehicle spawn still loading after 75s for '\(requested)'.")
@@ -1176,7 +1173,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             showCheatToast(L10n.text("Triệu hồi xe bị vô hiệu hóa trong Sandbox & Online"))
             return
         }
-        let clean = model.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let clean = ModRuntime.resolveModel(model, mods: ModManagerViewController.modsDirectory, vehiclesOnly: false)
         guard !clean.isEmpty else { return }
         guard engineStarted else {
             showCheatToast(L10n.text("Cần vào game trước khi triệu hồi xe"))
